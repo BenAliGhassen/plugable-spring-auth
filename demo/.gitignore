@@ -1,0 +1,52 @@
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+# Environment files (keep the example template)
+.env
+!.env.example
+
+# Local Spring configuration containing secrets
+application-local.properties
+application-secrets.properties
+application-*.local.properties
+application.properties
+# Logs and JVM crash reports
+*.log
+logs/
+hs_err_pid*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
