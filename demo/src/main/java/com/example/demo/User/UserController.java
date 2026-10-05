@@ -6,6 +6,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,11 +29,13 @@ public class UserController {
     private final UserService userServ;
     private final JwtService jwtService;
     private final RefreshService refreshService;
+    private final AuthenticationManager authManager;
 
-        public UserController(UserService userServ, JwtService jwtService, RefreshService refreshService){
+        public UserController(UserService userServ, JwtService jwtService, RefreshService refreshService, AuthenticationManager authManager){
             this.userServ = userServ;
             this.jwtService = jwtService;
             this.refreshService = refreshService;
+            this.authManager = authManager;
         }
 
 
@@ -50,8 +55,9 @@ public class UserController {
 
         @PostMapping("/auth/login")
         public ResponseEntity<UserResponse> login(@Valid @RequestBody LoginRequest req) {
-            User user = userServ.login(req);
-            String accessToken = jwtService.generateToken(user);
+            Authentication auth = authManager.authenticate(UsernamePasswordAuthenticationToken.unauthenticated(req.email(),req.password()));
+            String accessToken = jwtService.generateToken(auth.getName());
+            User user = userServ.getUser(auth.getName());
             String refreshToken = refreshService.generateRefreshToken(user);
             UserResponse userResponse = new UserResponse(user.getName(), user.getEmail());
             return ResponseEntity.ok()

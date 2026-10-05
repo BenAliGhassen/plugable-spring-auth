@@ -8,8 +8,6 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.example.demo.User.User;
-
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -25,13 +23,13 @@ public class JwtService {
         this.signingKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(base64Secret));
     }
 
-    public String generateToken(User user) {
-        if (user == null || user.getEmail() == null || user.getEmail().isBlank()) {
-            throw new IllegalArgumentException("User email is required to generate a JWT");
-        }
+    // public String generateToken(User user) {
+    //     if (user == null || user.getEmail() == null || user.getEmail().isBlank()) {
+    //         throw new IllegalArgumentException("User email is required to generate a JWT");
+    //     }
 
-        return generateToken(user.getEmail());
-    }
+    //     return generateToken(user.getEmail());
+    // }
 
     public String generateToken(String email) {
         if (email == null || email.isBlank()) {
