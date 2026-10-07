@@ -1,6 +1,7 @@
 package com.example.demo.User;
 
 import java.time.Duration;
+import java.util.List;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -9,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,6 +20,7 @@ import com.example.demo.JWT.JwtService;
 import com.example.demo.RefreshToken.InvalidToken;
 import com.example.demo.RefreshToken.RefreshService;
 import com.example.demo.RefreshToken.RefreshTokenRotation;
+import com.example.demo.Security.AuthUser;
 import com.example.demo.User.Records.LoginRequest;
 import com.example.demo.User.Records.UserRequest;
 import com.example.demo.User.Records.UserResponse;
@@ -56,7 +59,9 @@ public class UserController {
         @PostMapping("/auth/login")
         public ResponseEntity<UserResponse> login(@Valid @RequestBody LoginRequest req) {
             Authentication auth = authManager.authenticate(UsernamePasswordAuthenticationToken.unauthenticated(req.email(),req.password()));
-            String accessToken = jwtService.generateToken(auth.getName());
+            String subject = ((AuthUser) auth.getPrincipal()).getSubject();
+            List<String> roles = auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+            String accessToken = jwtService.generateToken(auth.getName(),roles);
             User user = userServ.getUser(auth.getName());
             String refreshToken = refreshService.generateRefreshToken(user);
             UserResponse userResponse = new UserResponse(user.getName(), user.getEmail());
@@ -69,8 +74,8 @@ public class UserController {
         @PostMapping("/auth/refresh")
         public ResponseEntity<UserResponse> refresh(@CookieValue(name = "refresh_token", required = false) String rawToken) {
             RefreshTokenRotation rotation = refreshService.rotateRefreshToken(rawToken);
-                String accessToken = jwtService.generateToken(rotation.userEmail());
-                UserResponse userResponse = new UserResponse(rotation.userName(), rotation.userEmail());
+                String accessToken = jwtService.generateToken(rotation.userEmail(), rotation.roles());
+                UserResponse userResponse = new UserResponse("", rotation.userEmail());
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, accessTokenCookie(accessToken).toString(),

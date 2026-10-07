@@ -7,11 +7,14 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.demo.Security.AuthUser;
+import com.example.demo.Security.AuthUserService;
 import com.example.demo.User.User;
 
 @Service
@@ -22,8 +25,11 @@ public class RefreshService {
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final RefreshRepository refreshRepo;
-    public RefreshService(RefreshRepository refreshRepo) {
+    private final AuthUserService authService;
+
+    public RefreshService(RefreshRepository refreshRepo, AuthUserService authService) {
         this.refreshRepo = refreshRepo;
+        this.authService = authService;
     }
 
 
@@ -106,9 +112,11 @@ SECOND ATOMIC IS CONSUMEIFACTIVE IT HANDLE RACE CONDITION IF TWO REQ WITH SAME T
         if (currentToken.getExpiresAt() == null || !currentToken.getExpiresAt().isAfter(now)) {
             throw new InvalidToken("Invalid refresh token");
         }
-
         User user = currentToken.getUser();
-        String userName = user.getName();
+        AuthUser authuser = authService.loadUserBySubject(user.getId().toString());
+        List<String> roles = authuser.getAuthorities().stream()
+            .map(authority -> authority.getAuthority())
+            .toList();
         String userEmail = user.getEmail();
         String familyId = currentToken.getFamilyId();
 
@@ -132,7 +140,7 @@ SECOND ATOMIC IS CONSUMEIFACTIVE IT HANDLE RACE CONDITION IF TWO REQ WITH SAME T
                 now.plus(REFRESH_TOKEN_TTL),
                 familyId,
                 user));
-        return new RefreshTokenRotation(userName, userEmail, replacementRawToken);
+        return new RefreshTokenRotation(userEmail, roles, replacementRawToken);
     }
 
 /*REVOKE METHODE SEARCH FOR THE TOKEN AND SET IT TO REVOKED. THIS METHODE IS CALLED ON LOGOUT IN USER SERVICE*/

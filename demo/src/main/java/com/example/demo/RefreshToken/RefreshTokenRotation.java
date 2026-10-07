@@ -1,4 +1,6 @@
 package com.example.demo.RefreshToken;
 
-public record RefreshTokenRotation(String userName, String userEmail, String rawToken) {
+import java.util.List;
+
+public record RefreshTokenRotation(String userEmail, List<String> roles, String rawToken) {
 }

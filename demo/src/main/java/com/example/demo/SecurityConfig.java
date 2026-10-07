@@ -37,6 +37,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.spa())
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/auth/login", "/auth/signup", "/auth/refresh","/csrf","/error","/auth/logout").permitAll()
+                        .requestMatchers("/hello").hasRole("USER")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
