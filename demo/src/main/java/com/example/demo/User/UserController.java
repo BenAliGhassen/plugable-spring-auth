@@ -3,6 +3,7 @@ package com.example.demo.User;
 import java.time.Duration;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -27,7 +28,7 @@ import com.example.demo.User.Records.UserResponse;
 
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+
 
 
 @RestController 
@@ -36,12 +37,16 @@ public class UserController {
     private final JwtService jwtService;
     private final RefreshService refreshService;
     private final AuthenticationManager authManager;
+    private final long accessTokenExpirationMinutes;
+    private final boolean secure_cookie;
 
-        public UserController(UserService userServ, JwtService jwtService, RefreshService refreshService, AuthenticationManager authManager){
+        public UserController(UserService userServ, JwtService jwtService, RefreshService refreshService, AuthenticationManager authManager, @Value("${ACCESS_TOKEN_EXPIRATION_MINUTES}") long accessTokenExpirationMinutes, @Value("${Cookies_secure:true}") boolean secure_cookie){
             this.userServ = userServ;
             this.jwtService = jwtService;
             this.refreshService = refreshService;
             this.authManager = authManager;
+            this.accessTokenExpirationMinutes = accessTokenExpirationMinutes;
+            this.secure_cookie = secure_cookie;
         }
 
 
@@ -115,17 +120,17 @@ public class UserController {
         private ResponseCookie accessTokenCookie(String token) {
             return ResponseCookie.from("access_token", token)
                     .httpOnly(true)
-                    .secure(true)
+                    .secure(secure_cookie)
                     .sameSite("Strict")
                     .path("/")
-                    .maxAge(Duration.ofMinutes(15))
+                    .maxAge(Duration.ofMinutes(accessTokenExpirationMinutes))
                     .build();
         }
 
         private ResponseCookie refreshTokenCookie(String token) {
             return ResponseCookie.from("refresh_token", token)
                     .httpOnly(true)
-                    .secure(true)
+                    .secure(secure_cookie)
                     .sameSite("Strict")
                     .path("/auth")
                     .maxAge(RefreshService.REFRESH_TOKEN_TTL)
@@ -135,7 +140,7 @@ public class UserController {
         private ResponseCookie expiredAccessTokenCookie() {
             return ResponseCookie.from("access_token", "")
                     .httpOnly(true)
-                    .secure(true)
+                    .secure(secure_cookie)
                     .sameSite("Strict")
                     .path("/")
                     .maxAge(Duration.ZERO)
@@ -145,7 +150,7 @@ public class UserController {
         private ResponseCookie expiredRefreshTokenCookie() {
             return ResponseCookie.from("refresh_token", "")
                     .httpOnly(true)
-                    .secure(true)
+                    .secure(secure_cookie)
                     .sameSite("Strict")
                     .path("/auth")
                     .maxAge(Duration.ZERO)

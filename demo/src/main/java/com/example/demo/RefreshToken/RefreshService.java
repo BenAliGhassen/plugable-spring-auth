@@ -70,8 +70,8 @@ public class RefreshService {
 
 
 /*GENERATE REFRESH TOKEN */
-    private String issueToken(String user_id, String familyId) {
-        if (user_id == null || user_id == "") {
+    private String issueToken(String userId, String familyId) {
+        if (userId == null || userId.isBlank()) {
             throw new IllegalArgumentException("User must not be null");
         }
         if (familyId == null || familyId.isBlank()) {
@@ -79,7 +79,7 @@ public class RefreshService {
         }
 
         String rawToken = createRawToken();
-        refreshRepo.save(new RefreshToken(hash(rawToken), false, Instant.now().plus(REFRESH_TOKEN_TTL), familyId, user_id));
+        refreshRepo.save(new RefreshToken(hash(rawToken), false, Instant.now().plus(REFRESH_TOKEN_TTL), familyId, userId));
         return rawToken;
     }
 
@@ -119,13 +119,13 @@ SECOND ATOMIC IS CONSUMEIFACTIVE IT HANDLE RACE CONDITION IF TWO REQ WITH SAME T
         List<String> roles = AuthorityMapper.toRoleName(authuser.getAuthorities());
         String username = authuser.getUsername();
         String familyId = currentToken.getFamilyId();
-        String user_id = currentToken.getUser();
+        String userId = currentToken.getUser();
 
         if (familyId == null || familyId.isBlank()) {
             throw new InvalidToken("Invalid refresh token");
         }
 
-        if (refreshRepo.consumeIfActive(tokenHash) != 1) {
+        if (refreshRepo.consumeIfActive(tokenHash, now) != 1) {
             RefreshToken latestToken = refreshRepo.findBytokenHash(tokenHash)
                     .orElseThrow(() -> new InvalidToken("Invalid refresh token"));
             if (latestToken.isRevoked()) {
@@ -134,7 +134,7 @@ SECOND ATOMIC IS CONSUMEIFACTIVE IT HANDLE RACE CONDITION IF TWO REQ WITH SAME T
             throw new InvalidToken("Invalid refresh token");
         }
 
-        String replacementRawToken = issueToken(user_id, familyId);
+        String replacementRawToken = issueToken(userId, familyId);
         
         return new RefreshTokenRotation(username, roles, replacementRawToken);
     }

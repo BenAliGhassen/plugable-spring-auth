@@ -37,14 +37,14 @@ public class AppUserDetailsService implements AuthUserService {
 
 
     public AuthUser loadUserById(String subject){
-
+        UUID id;
         try {
-            UUID id = UUID.fromString(subject);
-            User user = userRepo.findById(id).orElseThrow(() -> new UsernameNotFoundException("User Not Found"));
-            return toAuthUser(user);
-        } catch (Exception e) {
+            id = UUID.fromString(subject);
+        } catch (IllegalArgumentException e) {
             throw new UsernameNotFoundException("User Not Found");
         }
+        User user = userRepo.findById(id).orElseThrow(() -> new UsernameNotFoundException("User Not Found"));
+        return toAuthUser(user);
     }
 
 }

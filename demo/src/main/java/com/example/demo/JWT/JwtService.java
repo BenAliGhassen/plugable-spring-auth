@@ -18,21 +18,16 @@ import io.jsonwebtoken.security.Keys;
 @Service
 public class JwtService {
 
-    private static final long ACCESS_TOKEN_EXPIRATION_MINUTES = 15;
-
     private final SecretKey signingKey;
+    private final long accessTokenExpirationMinutes;
 
-    public JwtService(@Value("${jwt.secret}") String base64Secret) {
+    public JwtService(
+            @Value("${jwt.secret}") String base64Secret,
+            @Value("${ACCESS_TOKEN_EXPIRATION_MINUTES}") long accessTokenExpirationMinutes) {
         this.signingKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(base64Secret));
+        this.accessTokenExpirationMinutes = accessTokenExpirationMinutes;
     }
 
-    // public String generateToken(User user) {
-    //     if (user == null || user.getEmail() == null || user.getEmail().isBlank()) {
-    //         throw new IllegalArgumentException("User email is required to generate a JWT");
-    //     }
-
-    //     return generateToken(user.getEmail());
-    // }
 
     public String generateToken(String email, Collection<String> roles) {
         if (email == null || email.isBlank()) {
@@ -44,7 +39,7 @@ public class JwtService {
                 .subject(email)
                 .claim("roles", roles)
                 .issuedAt(java.util.Date.from(issuedAt))
-                .expiration(java.util.Date.from(issuedAt.plus(ACCESS_TOKEN_EXPIRATION_MINUTES, ChronoUnit.MINUTES)))
+                .expiration(java.util.Date.from(issuedAt.plus(accessTokenExpirationMinutes, ChronoUnit.MINUTES)))
                 .signWith(signingKey)
                 .compact();
     }

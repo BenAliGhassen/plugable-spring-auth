@@ -2,29 +2,37 @@ package com.example.demo.RefreshToken;
 
 import java.time.Instant;
 
+import org.springframework.stereotype.Indexed;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "refresh_tokens")
+@Table(name = "refresh_tokens", indexes = {
+@Index(columnList = "family_id"),
+@Index(columnList = "user_id")
+}
+)
 public class RefreshToken {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, unique = true)
     private String tokenHash;
 
     private boolean revoked;
 
+    @Column(nullable = false)
     private Instant expiresAt;
 
-    @Column(name = "family_id", length = 36)
+    @Column(name = "family_id", length = 36, nullable = false)
     private String familyId;
 
     @Column(nullable = false)

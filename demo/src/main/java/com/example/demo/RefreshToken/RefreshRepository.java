@@ -1,5 +1,6 @@
 package com.example.demo.RefreshToken;
 
+import java.time.Instant;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,7 +15,7 @@ public interface RefreshRepository extends JpaRepository<RefreshToken, Long> {
     @Query(value = "UPDATE refresh_tokens SET revoked = true "
             + "WHERE token_hash = :tokenHash AND revoked = false AND expires_at > now()",
             nativeQuery = true)
-    int consumeIfActive(@Param("tokenHash") String tokenHash);
+    int consumeIfActive(@Param("tokenHash") String tokenHash, @Param("now") Instant now);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = "UPDATE refresh_tokens SET revoked = true WHERE family_id = :familyId",
