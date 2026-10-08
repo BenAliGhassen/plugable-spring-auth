@@ -13,7 +13,7 @@ public interface RefreshRepository extends JpaRepository<RefreshToken, Long> {
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = "UPDATE refresh_tokens SET revoked = true "
-            + "WHERE token_hash = :tokenHash AND revoked = false AND expires_at > now()",
+            + "WHERE token_hash = :tokenHash AND revoked = false AND expires_at > :now",
             nativeQuery = true)
     int consumeIfActive(@Param("tokenHash") String tokenHash, @Param("now") Instant now);
 

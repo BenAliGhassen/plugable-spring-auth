@@ -1,9 +1,6 @@
 package com.example.demo.RefreshToken;
 
 import java.time.Instant;
-
-import org.springframework.stereotype.Indexed;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

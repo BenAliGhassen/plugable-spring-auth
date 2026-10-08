@@ -40,7 +40,7 @@ public class UserController {
     private final long accessTokenExpirationMinutes;
     private final boolean secure_cookie;
 
-        public UserController(UserService userServ, JwtService jwtService, RefreshService refreshService, AuthenticationManager authManager, @Value("${ACCESS_TOKEN_EXPIRATION_MINUTES}") long accessTokenExpirationMinutes, @Value("${Cookies_secure:true}") boolean secure_cookie){
+        public UserController(UserService userServ, JwtService jwtService, RefreshService refreshService, AuthenticationManager authManager, @Value("${ACCESS_TOKEN_EXPIRATION_MINUTES:15}") long accessTokenExpirationMinutes, @Value("${COOKIE_SECURE:true}") boolean secure_cookie){
             this.userServ = userServ;
             this.jwtService = jwtService;
             this.refreshService = refreshService;
@@ -73,8 +73,8 @@ public class UserController {
             String refreshToken = refreshService.generateRefreshToken(userId);
             UserResponse userResponse = new UserResponse("", auth.getName());
             return ResponseEntity.ok()
-                    .header(HttpHeaders.SET_COOKIE, accessTokenCookie(accessToken).toString(),
-                            refreshTokenCookie(refreshToken).toString())
+                    .header(HttpHeaders.SET_COOKIE, accessTokenCookie(accessToken, Duration.ofMinutes(accessTokenExpirationMinutes)).toString(),
+                            refreshTokenCookie(refreshToken, RefreshService.REFRESH_TOKEN_TTL).toString())
                     .body(userResponse);
         }
 
@@ -85,8 +85,8 @@ public class UserController {
                 UserResponse userResponse = new UserResponse("", rotation.userEmail());
 
             return ResponseEntity.ok()
-                    .header(HttpHeaders.SET_COOKIE, accessTokenCookie(accessToken).toString(),
-                            refreshTokenCookie(rotation.rawToken()).toString())
+                    .header(HttpHeaders.SET_COOKIE, accessTokenCookie(accessToken, Duration.ofMinutes(accessTokenExpirationMinutes)).toString(),
+                            refreshTokenCookie(rotation.rawToken(), RefreshService.REFRESH_TOKEN_TTL).toString())
                     .body(userResponse);
         }
 
@@ -102,8 +102,8 @@ public class UserController {
             }
 
             return ResponseEntity.noContent()
-                    .header(HttpHeaders.SET_COOKIE, expiredAccessTokenCookie().toString(),
-                            expiredRefreshTokenCookie().toString())
+                    .header(HttpHeaders.SET_COOKIE, accessTokenCookie("", Duration.ZERO).toString(),
+                            refreshTokenCookie("", Duration.ZERO).toString())
                     .build();
         }
         
@@ -117,43 +117,23 @@ public class UserController {
         
 
 
-        private ResponseCookie accessTokenCookie(String token) {
-            return ResponseCookie.from("access_token", token)
+        private ResponseCookie accessTokenCookie(String value, Duration maxAge) {
+            return ResponseCookie.from("access_token", value)
                     .httpOnly(true)
                     .secure(secure_cookie)
                     .sameSite("Strict")
                     .path("/")
-                    .maxAge(Duration.ofMinutes(accessTokenExpirationMinutes))
+                    .maxAge(maxAge)
                     .build();
         }
 
-        private ResponseCookie refreshTokenCookie(String token) {
-            return ResponseCookie.from("refresh_token", token)
+        private ResponseCookie refreshTokenCookie(String value, Duration maxAge) {
+            return ResponseCookie.from("refresh_token", value)
                     .httpOnly(true)
                     .secure(secure_cookie)
                     .sameSite("Strict")
                     .path("/auth")
-                    .maxAge(RefreshService.REFRESH_TOKEN_TTL)
-                    .build();
-        }
-
-        private ResponseCookie expiredAccessTokenCookie() {
-            return ResponseCookie.from("access_token", "")
-                    .httpOnly(true)
-                    .secure(secure_cookie)
-                    .sameSite("Strict")
-                    .path("/")
-                    .maxAge(Duration.ZERO)
-                    .build();
-        }
-
-        private ResponseCookie expiredRefreshTokenCookie() {
-            return ResponseCookie.from("refresh_token", "")
-                    .httpOnly(true)
-                    .secure(secure_cookie)
-                    .sameSite("Strict")
-                    .path("/auth")
-                    .maxAge(Duration.ZERO)
+                    .maxAge(maxAge)
                     .build();
         }
 }

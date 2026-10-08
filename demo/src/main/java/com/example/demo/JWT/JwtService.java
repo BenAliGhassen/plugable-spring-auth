@@ -23,7 +23,7 @@ public class JwtService {
 
     public JwtService(
             @Value("${jwt.secret}") String base64Secret,
-            @Value("${ACCESS_TOKEN_EXPIRATION_MINUTES}") long accessTokenExpirationMinutes) {
+            @Value("${ACCESS_TOKEN_EXPIRATION_MINUTES:15}") long accessTokenExpirationMinutes) {
         this.signingKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(base64Secret));
         this.accessTokenExpirationMinutes = accessTokenExpirationMinutes;
     }
