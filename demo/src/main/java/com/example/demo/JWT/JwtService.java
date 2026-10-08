@@ -55,9 +55,9 @@ public class JwtService {
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
-        String subject = claims.getSubject();
+        String username = claims.getSubject();
         List<String> roles = readRoles(claims.get("roles"));   
-        return new TokenClaims(subject,roles);     
+        return new TokenClaims(username,roles);     
 
     }
 

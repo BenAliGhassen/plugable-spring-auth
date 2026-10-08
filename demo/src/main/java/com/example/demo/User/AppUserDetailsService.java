@@ -1,11 +1,9 @@
 package com.example.demo.User;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +36,7 @@ public class AppUserDetailsService implements AuthUserService {
 
 
 
-    public AuthUser loadUserBySubject(String subject){
+    public AuthUser loadUserById(String subject){
 
         try {
             UUID id = UUID.fromString(subject);

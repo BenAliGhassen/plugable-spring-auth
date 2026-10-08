@@ -10,6 +10,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.example.demo.Security.AuthorityMapper;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -36,8 +38,8 @@ public class JwtFilter extends OncePerRequestFilter {
             if (token != null) {
                 try {
                     TokenClaims claims = jwtService.parseToken(token);
-                    String subject = claims.subject();
-                    List<SimpleGrantedAuthority> authorities = claims.roles().stream().map(SimpleGrantedAuthority::new).toList();
+                    String subject = claims.username();
+                    List<SimpleGrantedAuthority> authorities = AuthorityMapper.toAuthorities(claims.roles());
                     if (subject != null && !subject.isBlank()) {
                         UsernamePasswordAuthenticationToken authentication = UsernamePasswordAuthenticationToken.authenticated(subject, null, authorities);
                         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

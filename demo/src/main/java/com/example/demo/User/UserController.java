@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,11 +20,15 @@ import com.example.demo.RefreshToken.InvalidToken;
 import com.example.demo.RefreshToken.RefreshService;
 import com.example.demo.RefreshToken.RefreshTokenRotation;
 import com.example.demo.Security.AuthUser;
+import com.example.demo.Security.AuthorityMapper;
 import com.example.demo.User.Records.LoginRequest;
 import com.example.demo.User.Records.UserRequest;
 import com.example.demo.User.Records.UserResponse;
 
 import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController 
 public class UserController {
@@ -59,12 +62,11 @@ public class UserController {
         @PostMapping("/auth/login")
         public ResponseEntity<UserResponse> login(@Valid @RequestBody LoginRequest req) {
             Authentication auth = authManager.authenticate(UsernamePasswordAuthenticationToken.unauthenticated(req.email(),req.password()));
-            String subject = ((AuthUser) auth.getPrincipal()).getSubject();
-            List<String> roles = auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+            String userId = ((AuthUser) auth.getPrincipal()).getUserId();
+            List<String> roles = AuthorityMapper.toRoleName(auth.getAuthorities());
             String accessToken = jwtService.generateToken(auth.getName(),roles);
-            User user = userServ.getUser(auth.getName());
-            String refreshToken = refreshService.generateRefreshToken(user);
-            UserResponse userResponse = new UserResponse(user.getName(), user.getEmail());
+            String refreshToken = refreshService.generateRefreshToken(userId);
+            UserResponse userResponse = new UserResponse("", auth.getName());
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, accessTokenCookie(accessToken).toString(),
                             refreshTokenCookie(refreshToken).toString())
@@ -98,6 +100,14 @@ public class UserController {
                     .header(HttpHeaders.SET_COOKIE, expiredAccessTokenCookie().toString(),
                             expiredRefreshTokenCookie().toString())
                     .build();
+        }
+        
+
+
+        @GetMapping("/me")
+        public ResponseEntity<UserResponse> getMe(Authentication auth) {
+            User user = userServ.getUser(auth.getName());
+            return ResponseEntity.ok(new UserResponse(user.getName(), user.getEmail()));
         }
         
 

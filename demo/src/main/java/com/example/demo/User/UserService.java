@@ -15,7 +15,7 @@ public class UserService {
 
 
     public User getUser(String email){
-        return userRepo.findByEmail(email).orElseThrow(() -> new InvalidCredentials("Invalid email or password"));
+        return userRepo.findByEmail(email.trim().toLowerCase()).orElseThrow(() -> new InvalidCredentials("Invalid email or password"));
     }
 
     public UserService(UserRepository userRepo, PasswordEncoder passwordEncoder, RefreshService refreshService) {
@@ -25,12 +25,13 @@ public class UserService {
     }
 
     public Boolean createUser(UserRequest userReq) {
-        if (userRepo.findByEmail(userReq.email()).isPresent()) {
+        String email = userReq.email().trim().toLowerCase();
+        if (userRepo.findByEmail(email).isPresent()) {
             return false;
         }
 
         String hashedPassword = passwordEncoder.encode(userReq.password());
-        User user = new User(userReq.name(), userReq.email(), hashedPassword);
+        User user = new User(userReq.name(), email, hashedPassword);
         userRepo.save(user);
         return true;
     }

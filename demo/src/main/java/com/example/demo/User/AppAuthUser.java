@@ -17,7 +17,7 @@ public class AppAuthUser extends org.springframework.security.core.userdetails.U
     }
 
     @Override
-    public String getSubject(){
+    public String getUserId(){
         return subject;
     }
     

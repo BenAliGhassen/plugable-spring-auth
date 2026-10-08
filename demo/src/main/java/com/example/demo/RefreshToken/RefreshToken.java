@@ -2,15 +2,12 @@ package com.example.demo.RefreshToken;
 
 import java.time.Instant;
 
-import com.example.demo.User.User;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -30,20 +27,19 @@ public class RefreshToken {
     @Column(name = "family_id", length = 36)
     private String familyId;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(nullable = false)
+    private String user_id;
 
     public RefreshToken() {
     }
 
 
-    public RefreshToken(String tokenHash, boolean revoked, Instant expiresAt, String familyId, User user) {
+    public RefreshToken(String tokenHash, boolean revoked, Instant expiresAt, String familyId,String user_id) {
         this.tokenHash = tokenHash;
         this.revoked = revoked;
         this.expiresAt = expiresAt;
         this.familyId = familyId;
-        this.user = user;
+        this.user_id = user_id;
     }
 
     public Long getId() {
@@ -86,11 +82,11 @@ public class RefreshToken {
         this.familyId = familyId;
     }
 
-    public User getUser() {
-        return user;
+    public String getUser() {
+        return user_id;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUser(String user_id) {
+        this.user_id = user_id;
     }
 }
