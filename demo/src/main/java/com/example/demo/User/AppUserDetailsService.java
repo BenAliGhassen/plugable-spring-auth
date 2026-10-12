@@ -35,11 +35,11 @@ public class AppUserDetailsService implements AuthUserService {
 
 
 
-
-    public AuthUser loadUserById(String subject){
+    @Override 
+    public AuthUser loadUserById(String userId){
         UUID id;
         try {
-            id = UUID.fromString(subject);
+            id = UUID.fromString(userId);
         } catch (IllegalArgumentException e) {
             throw new UsernameNotFoundException("User Not Found");
         }

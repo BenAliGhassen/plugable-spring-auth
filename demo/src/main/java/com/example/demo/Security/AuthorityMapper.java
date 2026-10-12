@@ -5,11 +5,11 @@ import java.util.List;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-
+//TWO OCCURING LOGIC ARE PUT HERE AND CALLED ELSEWHERE
 public final class AuthorityMapper {
     private AuthorityMapper(){}
 
-    public static List<String> toRoleName(Collection<? extends GrantedAuthority> authorities){
+    public static List<String> toRoleNames(Collection<? extends GrantedAuthority> authorities){
         return authorities.stream().map(GrantedAuthority::getAuthority).toList();
     }
 

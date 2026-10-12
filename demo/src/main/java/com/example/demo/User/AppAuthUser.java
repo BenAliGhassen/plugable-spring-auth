@@ -7,18 +7,18 @@ import org.springframework.security.core.GrantedAuthority;
 import com.example.demo.Security.AuthUser;
 
 public class AppAuthUser extends org.springframework.security.core.userdetails.User implements AuthUser {
-    //The Subject is the user ID
-    private final String subject;
+//This is the adapter it adapt any user entity to work with our tokens logic
+    private final String userId;
 
-    //This is UserDetails OBJ + USER_ID(Subject)
-    public AppAuthUser(String username, String password, Collection<? extends GrantedAuthority> authorities, String subject) {
+    //This is UserDetails OBJ + USER_ID
+    public AppAuthUser(String username, String password, Collection<? extends GrantedAuthority> authorities, String userId) {
         super(username, password, authorities);
-        this.subject = subject;
+        this.userId = userId;
     }
 
     @Override
     public String getUserId(){
-        return subject;
+        return userId;
     }
     
 

@@ -38,7 +38,7 @@ public class UserController {
     private final RefreshService refreshService;
     private final AuthenticationManager authManager;
     private final long accessTokenExpirationMinutes;
-    private final boolean secure_cookie;
+    private final boolean secureCookies;
 
         public UserController(UserService userServ, JwtService jwtService, RefreshService refreshService, AuthenticationManager authManager, @Value("${ACCESS_TOKEN_EXPIRATION_MINUTES:15}") long accessTokenExpirationMinutes, @Value("${COOKIE_SECURE:true}") boolean secure_cookie){
             this.userServ = userServ;
@@ -46,8 +46,17 @@ public class UserController {
             this.refreshService = refreshService;
             this.authManager = authManager;
             this.accessTokenExpirationMinutes = accessTokenExpirationMinutes;
-            this.secure_cookie = secure_cookie;
+            this.secureCookies = secure_cookie;
         }
+
+
+
+        @GetMapping("/me")
+        public ResponseEntity<UserResponse> getMe(Authentication auth) {
+            User user = userServ.getUser(auth.getName());
+            return ResponseEntity.ok(new UserResponse(user.getName(), user.getEmail()));
+        }
+
 
 
         @PostMapping("/auth/signup")
@@ -65,29 +74,26 @@ public class UserController {
 
 
         @PostMapping("/auth/login")
-        public ResponseEntity<UserResponse> login(@Valid @RequestBody LoginRequest req) {
+        public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest req) {
             Authentication auth = authManager.authenticate(UsernamePasswordAuthenticationToken.unauthenticated(req.email(),req.password()));
             String userId = ((AuthUser) auth.getPrincipal()).getUserId();
-            List<String> roles = AuthorityMapper.toRoleName(auth.getAuthorities());
+            List<String> roles = AuthorityMapper.toRoleNames(auth.getAuthorities());
             String accessToken = jwtService.generateToken(auth.getName(),roles);
             String refreshToken = refreshService.generateRefreshToken(userId);
-            UserResponse userResponse = new UserResponse("", auth.getName());
-            return ResponseEntity.ok()
+            return ResponseEntity.noContent()
                     .header(HttpHeaders.SET_COOKIE, accessTokenCookie(accessToken, Duration.ofMinutes(accessTokenExpirationMinutes)).toString(),
-                            refreshTokenCookie(refreshToken, RefreshService.REFRESH_TOKEN_TTL).toString())
-                    .body(userResponse);
+                            refreshTokenCookie(refreshToken, RefreshService.REFRESH_TOKEN_TTL).toString()).build();
         }
 
         @PostMapping("/auth/refresh")
-        public ResponseEntity<UserResponse> refresh(@CookieValue(name = "refresh_token", required = false) String rawToken) {
+        public ResponseEntity<Void> refresh(@CookieValue(name = "refresh_token", required = false) String rawToken) {
             RefreshTokenRotation rotation = refreshService.rotateRefreshToken(rawToken);
                 String accessToken = jwtService.generateToken(rotation.userEmail(), rotation.roles());
-                UserResponse userResponse = new UserResponse("", rotation.userEmail());
 
-            return ResponseEntity.ok()
+            return ResponseEntity.noContent()
                     .header(HttpHeaders.SET_COOKIE, accessTokenCookie(accessToken, Duration.ofMinutes(accessTokenExpirationMinutes)).toString(),
                             refreshTokenCookie(rotation.rawToken(), RefreshService.REFRESH_TOKEN_TTL).toString())
-                    .body(userResponse);
+                    .build();
         }
 
 
@@ -108,19 +114,33 @@ public class UserController {
         }
         
 
+        @PostMapping("/auth/logout-all")
+        public ResponseEntity<Void> logoutAll(@CookieValue(name = "refresh_token", required = false)String rawToken) {
+            
+             if (rawToken != null && !rawToken.isBlank()) {
+                try {
+                    userServ.logoutAllAccounts(rawToken);
+                } catch (InvalidToken ignored) {
+                    // Logout should still clear the cookies when the refresh token is already invalid.
+                }
+            }
 
-        @GetMapping("/me")
-        public ResponseEntity<UserResponse> getMe(Authentication auth) {
-            User user = userServ.getUser(auth.getName());
-            return ResponseEntity.ok(new UserResponse(user.getName(), user.getEmail()));
+
+            return ResponseEntity.noContent()
+                    .header(HttpHeaders.SET_COOKIE, accessTokenCookie("", Duration.ZERO).toString(),refreshTokenCookie("", Duration.ZERO).toString()).build();
         }
+        
+
+
+
+
         
 
 
         private ResponseCookie accessTokenCookie(String value, Duration maxAge) {
             return ResponseCookie.from("access_token", value)
                     .httpOnly(true)
-                    .secure(secure_cookie)
+                    .secure(secureCookies)
                     .sameSite("Strict")
                     .path("/")
                     .maxAge(maxAge)
@@ -130,7 +150,7 @@ public class UserController {
         private ResponseCookie refreshTokenCookie(String value, Duration maxAge) {
             return ResponseCookie.from("refresh_token", value)
                     .httpOnly(true)
-                    .secure(secure_cookie)
+                    .secure(secureCookies)
                     .sameSite("Strict")
                     .path("/auth")
                     .maxAge(maxAge)

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 
-
+//CSRF CONTROLLER IS USED TO CALL THE /csrf ENDPOINT TO GET A CSRF TOKEN
 @RestController
 public class CsrfController {
 
@@ -15,13 +15,5 @@ public class CsrfController {
     public ResponseEntity<Void> getCsrf(CsrfToken csrf) {
         csrf.getToken();
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/hello")
-    public String Hello() {
-        return "Hello";
-    }
-    
-    
-
+    }  
 }

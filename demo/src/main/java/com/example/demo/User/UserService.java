@@ -24,7 +24,7 @@ public class UserService {
         this.refreshService = refreshService;
     }
 
-    public Boolean createUser(UserRequest userReq) {
+    public boolean createUser(UserRequest userReq) {
         String email = userReq.email().trim().toLowerCase();
         if (userRepo.findByEmail(email).isPresent()) {
             return false;
@@ -38,5 +38,9 @@ public class UserService {
 
     public void logout(String raw) {
         refreshService.revoke(raw);
+    }
+
+    public void logoutAllAccounts(String raw){
+        refreshService.revokeAll(raw);
     }
 }

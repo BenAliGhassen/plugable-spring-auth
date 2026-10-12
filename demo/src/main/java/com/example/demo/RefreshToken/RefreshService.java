@@ -1,5 +1,4 @@
 package com.example.demo.RefreshToken;
-
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -9,22 +8,20 @@ import java.util.Base64;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.UUID;
-
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.example.demo.Security.AuthUser;
 import com.example.demo.Security.AuthUserService;
 import com.example.demo.Security.AuthorityMapper;
 
+//THIS FILE IS RESPONSIBLE FOR GENERATING A REFRESH TOKEN, ROTATE IT AND REVOKE IT
 @Service
 public class RefreshService {
 
     private static final int TOKEN_LENGTH_BYTES = 64;
     public static final Duration REFRESH_TOKEN_TTL = Duration.ofDays(7);
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
-
     private final RefreshRepository refreshRepo;
     private final AuthUserService authService;
 
@@ -63,7 +60,7 @@ public class RefreshService {
     }
 
 
-/*METHODE TO BE CALLED IN LOGIN METHODE IN USER CONTROLLER TAKE USER SUBJECT AS PARAM RETURN A CALL TO THE REAL GENERATION METHODE WITH USER AND FAMILY_ID */
+/*METHODE TO BE CALLED IN LOGIN METHODE IN USER CONTROLLER TAKE USER_Id AS PARAM RETURN A CALL TO THE REAL GENERATION METHODE WITH USER AND FAMILY_ID */
     public String generateRefreshToken(String userId) {
         return issueToken(userId, generateFamilyId());
     }
@@ -102,7 +99,7 @@ SECOND ATOMIC IS CONSUMEIFACTIVE IT HANDLE RACE CONDITION IF TWO REQ WITH SAME T
 
         String tokenHash = hash(rawToken);
         Instant now = Instant.now();
-        RefreshToken currentToken = refreshRepo.findBytokenHash(tokenHash)
+        RefreshToken currentToken = refreshRepo.findByTokenHash(tokenHash)
                 .orElseThrow(() -> new InvalidToken("Invalid refresh token"));
 
         if (currentToken.isRevoked()) {
@@ -114,19 +111,19 @@ SECOND ATOMIC IS CONSUMEIFACTIVE IT HANDLE RACE CONDITION IF TWO REQ WITH SAME T
             throw new InvalidToken("Invalid refresh token");
         }
         //Find by uuid
-        AuthUser authuser = authService.loadUserById(currentToken.getUser());
-        new AccountStatusUserDetailsChecker().check(authuser);
-        List<String> roles = AuthorityMapper.toRoleName(authuser.getAuthorities());
-        String username = authuser.getUsername();
+        AuthUser authUser = authService.loadUserById(currentToken.getUserId());
+        new AccountStatusUserDetailsChecker().check(authUser);
+        List<String> roles = AuthorityMapper.toRoleNames(authUser.getAuthorities());
+        String username = authUser.getUsername();
         String familyId = currentToken.getFamilyId();
-        String userId = currentToken.getUser();
+        String userId = currentToken.getUserId();
 
         if (familyId == null || familyId.isBlank()) {
             throw new InvalidToken("Invalid refresh token");
         }
 
         if (refreshRepo.consumeIfActive(tokenHash, now) != 1) {
-            RefreshToken latestToken = refreshRepo.findBytokenHash(tokenHash)
+            RefreshToken latestToken = refreshRepo.findByTokenHash(tokenHash)
                     .orElseThrow(() -> new InvalidToken("Invalid refresh token"));
             if (latestToken.isRevoked()) {
                 revokeTokenFamily(latestToken);
@@ -142,11 +139,28 @@ SECOND ATOMIC IS CONSUMEIFACTIVE IT HANDLE RACE CONDITION IF TWO REQ WITH SAME T
 /*REVOKE METHODE SEARCH FOR THE TOKEN AND SET IT TO REVOKED. THIS METHODE IS CALLED ON LOGOUT IN USER SERVICE*/
     public void revoke(String raw) {
         String tokenHash = hash(raw);
-        RefreshToken refreshToken = refreshRepo.findBytokenHash(tokenHash)
+        RefreshToken refreshToken = refreshRepo.findByTokenHash(tokenHash)
                 .filter(token -> !token.isRevoked())
                 .orElseThrow(() -> new InvalidToken("Invalid refresh token"));
 
         refreshToken.setRevoked(true);
         refreshRepo.save(refreshToken);
     }
+
+/*THIS METHODE IS USED WHEN A USER CHANGE HIS PASSWORD */  
+    @Transactional          
+    public void revokeAllForUser(String userId){
+        if(userId == null || userId.isBlank()){
+            throw new IllegalArgumentException("User id must not be blank");
+        }
+        refreshRepo.revokeAllByUserId(userId);
+    } 
+    
+/*THIS METHODE IS USED WHEN A LOGOUT ALL IS CLICKED */
+    @Transactional
+    public void revokeAll(String raw){
+        String tokenHash = hash(raw);
+        RefreshToken refreshToken = refreshRepo.findByTokenHash(tokenHash).filter(token -> !token.isRevoked()).orElseThrow(() -> new InvalidToken("Invalid refresh token"));       
+        revokeAllForUser(refreshToken.getUserId());
+            }       
 }

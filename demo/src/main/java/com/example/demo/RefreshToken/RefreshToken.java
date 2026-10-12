@@ -1,6 +1,9 @@
 package com.example.demo.RefreshToken;
 
 import java.time.Instant;
+
+import org.springframework.stereotype.Indexed;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,7 +15,8 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "refresh_tokens", indexes = {
 @Index(columnList = "family_id"),
-@Index(columnList = "user_id")
+@Index(columnList = "user_id"),
+@Index(columnList= "expires_at")
 }
 )
 public class RefreshToken {
@@ -33,7 +37,7 @@ public class RefreshToken {
     private String familyId;
 
     @Column(nullable = false)
-    private String user_id;
+    private String userId;
 
     public RefreshToken() {
     }
@@ -44,7 +48,7 @@ public class RefreshToken {
         this.revoked = revoked;
         this.expiresAt = expiresAt;
         this.familyId = familyId;
-        this.user_id = user_id;
+        this.userId = user_id;
     }
 
     public Long getId() {
@@ -55,11 +59,11 @@ public class RefreshToken {
         this.id = id;
     }
 
-    public String gettokenHash() {
+    public String getTokenHash() {
         return tokenHash;
     }
 
-    public void settokenHash(String tokenHash) {
+    public void setTokenHash(String tokenHash) {
         this.tokenHash = tokenHash;
     }
 
@@ -87,11 +91,11 @@ public class RefreshToken {
         this.familyId = familyId;
     }
 
-    public String getUser() {
-        return user_id;
+    public String getUserId() {
+        return userId;
     }
 
-    public void setUser(String user_id) {
-        this.user_id = user_id;
+    public void setUserId(String user_id) {
+        this.userId = user_id;
     }
 }
