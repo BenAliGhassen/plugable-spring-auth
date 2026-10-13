@@ -1,4 +1,4 @@
-package com.example.demo.JWT;
+package com.example.demo.security.jwt;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;

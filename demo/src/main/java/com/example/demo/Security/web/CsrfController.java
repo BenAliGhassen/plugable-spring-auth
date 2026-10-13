@@ -1,4 +1,4 @@
-package com.example.demo.Csrf;
+package com.example.demo.security.web;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.csrf.CsrfToken;

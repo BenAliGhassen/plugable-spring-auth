@@ -1,4 +1,4 @@
-package com.example.demo.RefreshToken;
+package com.example.demo.security.refresh;
 
 //INVALID TOKEN EXCEPTION
 public class InvalidToken extends RuntimeException {

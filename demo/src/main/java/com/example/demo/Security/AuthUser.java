@@ -1,4 +1,4 @@
-package com.example.demo.Security;
+package com.example.demo.security;
 
 import org.springframework.security.core.userdetails.UserDetails;
 /*THIS IS AN ADAPTER IT EXTENDS USER DETAILS AND ADD A METHODE getUserID

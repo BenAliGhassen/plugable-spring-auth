@@ -1,4 +1,4 @@
-package com.example.demo.User;
+package com.example.demo.user;
 
 import java.util.Optional;
 import java.util.UUID;

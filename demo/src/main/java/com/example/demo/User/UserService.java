@@ -1,10 +1,10 @@
-package com.example.demo.User;
+package com.example.demo.user;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.example.demo.RefreshToken.RefreshService;
-import com.example.demo.User.Records.UserRequest;
+import com.example.demo.security.refresh.RefreshService;
+import com.example.demo.user.records.UserRequest;
 
 @Service
 public class UserService {

@@ -1,4 +1,4 @@
-package com.example.demo.JWT;
+package com.example.demo.security.jwt;
 import java.io.IOException;
 import java.util.List;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -7,7 +7,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import com.example.demo.Security.AuthorityMapper;
+import com.example.demo.security.AuthorityMapper;
+import com.example.demo.security.web.AuthCookies;
+
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -19,7 +21,6 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
-    private static final String ACCESS_TOKEN_COOKIE = "access_token";
     private final JwtService jwtService;
 
     public JwtFilter(JwtService jwtService) {
@@ -57,7 +58,7 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         for (Cookie cookie : cookies) {
-            if (ACCESS_TOKEN_COOKIE.equals(cookie.getName()) && !cookie.getValue().isBlank()) {
+            if (AuthCookies.ACCESS_TOKEN.equals(cookie.getName()) && !cookie.getValue().isBlank()) {
                 return cookie.getValue();
             }
         }

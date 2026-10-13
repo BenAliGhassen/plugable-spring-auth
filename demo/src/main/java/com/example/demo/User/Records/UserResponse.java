@@ -1,4 +1,4 @@
-package com.example.demo.User.Records;
+package com.example.demo.user.records;
 
 public record UserResponse(String name, String email) {
 

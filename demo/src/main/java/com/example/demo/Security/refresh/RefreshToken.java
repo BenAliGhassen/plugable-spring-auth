@@ -1,4 +1,4 @@
-package com.example.demo.RefreshToken;
+package com.example.demo.security.refresh;
 import java.time.Instant;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

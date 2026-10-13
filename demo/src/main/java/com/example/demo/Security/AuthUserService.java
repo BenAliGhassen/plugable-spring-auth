@@ -1,4 +1,4 @@
-package com.example.demo.Security;
+package com.example.demo.security;
 
 import org.springframework.security.core.userdetails.UserDetailsService;
 //ADAPTER THAT EXTEND USER DETAILS SERVICE AND ADD LoadUserById IT'S THE BRIDGE BETWEEN THE PROJECT AND TEMPLATE USED BY THE AppUserDetailsService.

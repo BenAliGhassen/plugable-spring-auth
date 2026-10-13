@@ -1,4 +1,4 @@
-package com.example.demo.RefreshToken;
+package com.example.demo.security.refresh;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -11,9 +11,10 @@ import java.util.UUID;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.example.demo.Security.AuthUser;
-import com.example.demo.Security.AuthUserService;
-import com.example.demo.Security.AuthorityMapper;
+
+import com.example.demo.security.AuthUser;
+import com.example.demo.security.AuthUserService;
+import com.example.demo.security.AuthorityMapper;
 
 //THIS FILE IS RESPONSIBLE FOR GENERATING A REFRESH TOKEN, ROTATE IT AND REVOKE IT
 @Service

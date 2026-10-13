@@ -1,4 +1,4 @@
-package com.example.demo.JWT;
+package com.example.demo.security.jwt;
 
 import java.util.List;
 //THIS RECORD WILL CONTAINS THE WT TOKEN CLAIMS USERNAME AND ROLES

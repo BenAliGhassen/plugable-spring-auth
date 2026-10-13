@@ -1,5 +1,7 @@
-package com.example.demo;
+package com.example.demo.security;
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,11 +20,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import com.example.demo.JWT.JwtFilter;
+
+import com.example.demo.security.jwt.JwtFilter;
 
 @Configuration
 @EnableScheduling 
 public class SecurityConfig {
+
+    @Value("${CORS_ALLOWED_ORIGINS:http://localhost:5173}") List<String> allowedOrigins;
 
     @Bean
     PasswordEncoder passwordEncoder() {
@@ -30,13 +35,17 @@ public class SecurityConfig {
     }
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http, JwtFilter jwtFilter) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http, JwtFilter jwtFilter,List<ProjectSecurityRules> projectSecurityRules) throws Exception {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.spa())
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/auth/login", "/auth/signup", "/auth/refresh","/csrf","/error","/auth/logout","/auth/logout-all").permitAll()
-                        .anyRequest().authenticated())
+                .authorizeHttpRequests(authorize -> {
+                    authorize.requestMatchers("/auth/login", "/auth/refresh","/csrf","/error","/auth/logout","/auth/logout-all").permitAll();
+                    projectSecurityRules.forEach(rules -> rules.configure(authorize));
+                    authorize.anyRequest().authenticated();
+                    }
+                    
+                    )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
@@ -54,7 +63,7 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(List.of("GET", "POST", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Content-Type", "X-XSRF-TOKEN"));
         configuration.setAllowCredentials(true);
