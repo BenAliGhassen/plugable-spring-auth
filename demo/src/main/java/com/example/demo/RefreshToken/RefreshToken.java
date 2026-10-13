@@ -1,9 +1,5 @@
 package com.example.demo.RefreshToken;
-
 import java.time.Instant;
-
-import org.springframework.stereotype.Indexed;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -43,12 +39,12 @@ public class RefreshToken {
     }
 
 
-    public RefreshToken(String tokenHash, boolean revoked, Instant expiresAt, String familyId,String user_id) {
+    public RefreshToken(String tokenHash, boolean revoked, Instant expiresAt, String familyId,String userId) {
         this.tokenHash = tokenHash;
         this.revoked = revoked;
         this.expiresAt = expiresAt;
         this.familyId = familyId;
-        this.userId = user_id;
+        this.userId = userId;
     }
 
     public Long getId() {
@@ -95,7 +91,7 @@ public class RefreshToken {
         return userId;
     }
 
-    public void setUserId(String user_id) {
-        this.userId = user_id;
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 }

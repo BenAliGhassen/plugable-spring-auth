@@ -1,15 +1,13 @@
 package com.example.demo.User;
-
 import java.util.List;
 import java.util.UUID;
-
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
 import com.example.demo.Security.AuthUser;
 import com.example.demo.Security.AuthUserService;
 
+//THE ADAPTER, THE BRIDGE IT BIND THE ENTITY CREATED BY THE TEMPLATE USERS TO THE USER DETAILS OBJ NEEDED IN OUR TOKENS LOGIC
 @Service
 public class AppUserDetailsService implements AuthUserService {
     private final UserRepository userRepo;

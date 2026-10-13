@@ -1,8 +1,6 @@
 package com.example.demo.User;
-
 import java.time.Duration;
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -15,7 +13,6 @@ import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.example.demo.JWT.JwtService;
 import com.example.demo.RefreshToken.InvalidToken;
 import com.example.demo.RefreshToken.RefreshService;
@@ -25,7 +22,6 @@ import com.example.demo.Security.AuthorityMapper;
 import com.example.demo.User.Records.LoginRequest;
 import com.example.demo.User.Records.UserRequest;
 import com.example.demo.User.Records.UserResponse;
-
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -40,13 +36,13 @@ public class UserController {
     private final long accessTokenExpirationMinutes;
     private final boolean secureCookies;
 
-        public UserController(UserService userServ, JwtService jwtService, RefreshService refreshService, AuthenticationManager authManager, @Value("${ACCESS_TOKEN_EXPIRATION_MINUTES:15}") long accessTokenExpirationMinutes, @Value("${COOKIE_SECURE:true}") boolean secure_cookie){
+        public UserController(UserService userServ, JwtService jwtService, RefreshService refreshService, AuthenticationManager authManager, @Value("${ACCESS_TOKEN_EXPIRATION_MINUTES:15}") long accessTokenExpirationMinutes, @Value("${COOKIE_SECURE:true}") boolean secureCookies){
             this.userServ = userServ;
             this.jwtService = jwtService;
             this.refreshService = refreshService;
             this.authManager = authManager;
             this.accessTokenExpirationMinutes = accessTokenExpirationMinutes;
-            this.secureCookies = secure_cookie;
+            this.secureCookies = secureCookies;
         }
 
 
