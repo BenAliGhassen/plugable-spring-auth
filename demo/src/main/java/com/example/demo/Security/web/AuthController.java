@@ -32,7 +32,7 @@ public class AuthController {
     private final long accessTokenExpirationMinutes;
     private final boolean secureCookies;
 
-        public AuthController(JwtService jwtService, RefreshService refreshService, AuthenticationManager authManager, @Value("15") long accessTokenExpirationMinutes, @Value("true") boolean secureCookies){
+        public AuthController(JwtService jwtService, RefreshService refreshService, AuthenticationManager authManager, @Value("${ACCESS_TOKEN_EXPIRATION_MINUTES:15}") long accessTokenExpirationMinutes, @Value("${COOKIE_SECURE:true}") boolean secureCookies){
             this.jwtService = jwtService;
             this.refreshService = refreshService;
             this.authManager = authManager;
