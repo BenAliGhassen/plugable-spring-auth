@@ -113,6 +113,7 @@ SECOND ATOMIC IS CONSUMEIFACTIVE IT HANDLE RACE CONDITION IF TWO REQ WITH SAME T
         }
         //Find by uuid
         AuthUser authUser = authService.loadUserById(currentToken.getUserId());
+        //check the account is not disabled or expired
         new AccountStatusUserDetailsChecker().check(authUser);
         List<String> roles = AuthorityMapper.toRoleNames(authUser.getAuthorities());
         String username = authUser.getUsername();
