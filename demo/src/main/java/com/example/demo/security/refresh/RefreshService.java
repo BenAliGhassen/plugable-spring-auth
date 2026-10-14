@@ -53,7 +53,7 @@ public class RefreshService {
         }
     }
 
-/*CREATE A RANDOM BYTE STRING RAW TOKEN OF 32 BYTE */
+/*CREATE A RANDOM BYTE STRING RAW TOKEN OF 64 BYTE */
     private String createRawToken() {
         byte[] randomBytes = new byte[TOKEN_LENGTH_BYTES];
         SECURE_RANDOM.nextBytes(randomBytes);
@@ -137,7 +137,7 @@ SECOND ATOMIC IS CONSUMEIFACTIVE IT HANDLE RACE CONDITION IF TWO REQ WITH SAME T
         return new RefreshTokenRotation(username, roles, replacementRawToken);
     }
 
-/*REVOKE METHODE SEARCH FOR THE TOKEN AND SET IT TO REVOKED. THIS METHODE IS CALLED ON LOGOUT IN USER SERVICE*/
+/*REVOKE METHODE SEARCH FOR THE TOKEN AND SET IT TO REVOKED. THIS METHODE IS CALLED ON LOGOUT IN AuthController*/
     public void revoke(String raw) {
         String tokenHash = hash(raw);
         RefreshToken refreshToken = refreshRepo.findByTokenHash(tokenHash)
@@ -161,7 +161,7 @@ SECOND ATOMIC IS CONSUMEIFACTIVE IT HANDLE RACE CONDITION IF TWO REQ WITH SAME T
     @Transactional
     public void revokeAll(String raw){
         String tokenHash = hash(raw);
-        RefreshToken refreshToken = refreshRepo.findByTokenHash(tokenHash).filter(token -> !token.isRevoked()).orElseThrow(() -> new InvalidToken("Invalid refresh token"));       
+        RefreshToken refreshToken = refreshRepo.findByTokenHash(tokenHash).filter(token -> !token.isRevoked() && token.getExpiresAt().isAfter(Instant.now())).orElseThrow(() -> new InvalidToken("Invalid refresh token"));       
         revokeAllForUser(refreshToken.getUserId());
             }       
 }

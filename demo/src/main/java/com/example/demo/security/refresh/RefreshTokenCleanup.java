@@ -5,7 +5,8 @@ import java.util.logging.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
+
 
 //THIS FILE CALL THE QUERY TO DELETE AN EXPIRED REFRESH TOKEN EVERYDAY AT 3AM
 @Component 

@@ -27,14 +27,14 @@ public class JwtService {
     }
 
 
-    public String generateToken(String email, Collection<String> roles) {
-        if (email == null || email.isBlank()) {
-            throw new IllegalArgumentException("User email is required to generate a JWT");
+    public String generateToken(String username, Collection<String> roles) {
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException("Username is required to generate a JWT");
         }
 
         Instant issuedAt = Instant.now();
         return Jwts.builder()
-                .subject(email)
+                .subject(username)
                 .claim("roles", roles)
                 .issuedAt(java.util.Date.from(issuedAt))
                 .expiration(java.util.Date.from(issuedAt.plus(accessTokenExpirationMinutes, ChronoUnit.MINUTES)))

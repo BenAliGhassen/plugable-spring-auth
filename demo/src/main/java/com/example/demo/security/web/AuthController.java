@@ -45,7 +45,7 @@ public class AuthController {
 
         @PostMapping("/login")
         public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest req) {
-            Authentication auth = authManager.authenticate(UsernamePasswordAuthenticationToken.unauthenticated(req.email(),req.password()));
+            Authentication auth = authManager.authenticate(UsernamePasswordAuthenticationToken.unauthenticated(req.username(),req.password()));
             String userId = ((AuthUser) auth.getPrincipal()).getUserId();
             List<String> roles = AuthorityMapper.toRoleNames(auth.getAuthorities());
             String accessToken = jwtService.generateToken(auth.getName(),roles);
@@ -58,7 +58,7 @@ public class AuthController {
         @PostMapping("/refresh")
         public ResponseEntity<Void> refresh(@CookieValue(name = AuthCookies.REFRESH_TOKEN, required = false) String rawToken) {
             RefreshTokenRotation rotation = refreshService.rotateRefreshToken(rawToken);
-                String accessToken = jwtService.generateToken(rotation.userEmail(), rotation.roles());
+                String accessToken = jwtService.generateToken(rotation.username(), rotation.roles());
 
             return ResponseEntity.noContent()
                     .header(HttpHeaders.SET_COOKIE, accessTokenCookie(accessToken, Duration.ofMinutes(accessTokenExpirationMinutes)).toString(),
