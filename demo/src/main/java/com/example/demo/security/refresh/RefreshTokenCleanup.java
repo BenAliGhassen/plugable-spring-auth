@@ -15,7 +15,7 @@ public class RefreshTokenCleanup {
     private final RefreshRepository refreshRepo;
     private final AuthProperties authProps;
     // 0 secondes 0 minute 3 hours * any_day_of_month * any_month * any_day_of_week ===> everyday at 3am
-    private final String cleanupCron = "${REFRESH_TOKEN_CLEANUP_CRON:0 0 3 * * *}";
+    private static  final String cleanupCron = "${AUTH_CLEANUP_CRON:0 0 3 * * *}";
     
 
     public RefreshTokenCleanup(RefreshRepository refreshRepo, AuthProperties authProps) {

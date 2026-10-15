@@ -13,7 +13,7 @@ public record AuthProperties(
     @DefaultValue Cors cors) {
 
 public AuthProperties {
-    if(refresh.ttl().compareTo(access.ttl()) < 0){
+    if(refresh.ttl().compareTo(access.ttl()) <= 0){
         throw new IllegalArgumentException("Retention ttl value must be greater than Access ttl");
     }
 }
@@ -26,7 +26,7 @@ public record Refresh(@DefaultValue("3d") Duration retention, @DefaultValue("7d"
     }
 
     if(ttl == null || ttl.isNegative() || ttl.isZero()){
-        throw new IllegalArgumentException("TTL value must be filled with positive value");
+        throw new IllegalArgumentException("Refresh TTL value must be filled with positive value");
     }
     }
 }
@@ -37,12 +37,16 @@ public record Jwt(String secret){
         throw new IllegalArgumentException("Secret is required");
     }
     }
+    @Override 
+    public String toString(){
+        return "jwt[secret=*******]";
+    }
 }
 
 public record Access(@DefaultValue("15m") Duration ttl){
     public Access {
     if(ttl == null || ttl.isNegative() || ttl.isZero()){
-        throw new IllegalArgumentException("TTL value must be filled with positive value");
+        throw new IllegalArgumentException("Access TTL value must be filled with positive value");
     }
     }
 }
