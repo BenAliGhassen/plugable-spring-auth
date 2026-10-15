@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.security.AuthProperties;
 import com.example.demo.security.AuthUser;
 import com.example.demo.security.AuthorityMapper;
-import com.example.demo.security.LogSanitaizer;
+import com.example.demo.security.LogSanitizer;
 import com.example.demo.security.jwt.JwtService;
 import com.example.demo.security.login.LoginAttemptsService;
 import com.example.demo.security.refresh.InvalidToken;
@@ -54,8 +54,8 @@ public class AuthController {
         @PostMapping("/login")
         public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest req, HttpServletRequest request){
             String ip = request.getRemoteAddr();
-            String finalIp = LogSanitaizer.cleanString(ip);
-            String finalUsername = LogSanitaizer.cleanString(req.username());
+            String finalIp = LogSanitizer.cleanString(ip);
+            String finalUsername = LogSanitizer.cleanString(req.username());
             if(loginAttemptsService.isBlocked(ip, req.username())){
                 log.warn("Login blocked for ip={} username={}", finalIp, finalUsername);
                 return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).header(HttpHeaders.RETRY_AFTER, String.valueOf(authProps.login().window().toSeconds())).build();
@@ -72,7 +72,7 @@ public class AuthController {
             loginAttemptsService.recordSuccess(ip, req.username());
             String userId = ((AuthUser) auth.getPrincipal()).getUserId();
             List<String> roles = AuthorityMapper.toRoleNames(auth.getAuthorities());
-            log.info("Login success ip={} userId={}",ip, userId);
+            log.info("Login success ip={} userId={}",finalIp, userId);
             String accessToken = jwtService.generateToken(auth.getName(),roles);
             String refreshToken = refreshService.generateRefreshToken(userId);
             return ResponseEntity.noContent()

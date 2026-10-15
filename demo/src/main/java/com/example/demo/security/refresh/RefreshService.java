@@ -109,7 +109,7 @@ SECOND ATOMIC IS CONSUMEIFACTIVE IT HANDLE RACE CONDITION IF TWO REQ WITH SAME T
 
         if (currentToken.isRevoked()) {
             revokeTokenFamily(currentToken);
-            log.warn("Revoked token used userId={} familyId={}",currentToken.getUserId(), currentToken.getFamilyId());
+            log.warn("Refresh token used userId={} familyId={}",currentToken.getUserId(), currentToken.getFamilyId());
             throw new InvalidToken("Invalid refresh token");
         }
 
@@ -130,12 +130,11 @@ SECOND ATOMIC IS CONSUMEIFACTIVE IT HANDLE RACE CONDITION IF TWO REQ WITH SAME T
         }
 
         if (refreshRepo.consumeIfActive(tokenHash, now) != 1) {
-            RefreshToken latestToken = refreshRepo.findByTokenHash(tokenHash)
-                    .orElseThrow(() -> new InvalidToken("Invalid refresh token"));
-            log.warn("Refresh token reuse reason=concurrent userId={}, familyId={}", latestToken.getUserId(), latestToken.getFamilyId());        
-            if (latestToken.isRevoked()) {
-                revokeTokenFamily(latestToken);
-            }
+            RefreshToken latestToken = refreshRepo.findByTokenHash(tokenHash).orElseThrow(() -> new InvalidToken("Invalid refresh token"));
+                    if (latestToken.isRevoked()) {
+                        revokeTokenFamily(latestToken);
+                        log.warn("Refresh token reuse reason=concurrent userId={} familyId={}", latestToken.getUserId(), latestToken.getFamilyId());        
+                    }
             throw new InvalidToken("Invalid refresh token");
         }
 
@@ -153,7 +152,7 @@ SECOND ATOMIC IS CONSUMEIFACTIVE IT HANDLE RACE CONDITION IF TWO REQ WITH SAME T
 
         refreshToken.setRevoked(true);
         refreshRepo.save(refreshToken);
-        log.info("Refresh token revoked userId={}, familyId={}", refreshToken.getUserId(), refreshToken.getFamilyId()); 
+        log.info("Refresh token revoked userId={} familyId={}", refreshToken.getUserId(), refreshToken.getFamilyId()); 
     }
 
 /*THIS METHODE IS USED WHEN A USER CHANGE HIS PASSWORD */  
