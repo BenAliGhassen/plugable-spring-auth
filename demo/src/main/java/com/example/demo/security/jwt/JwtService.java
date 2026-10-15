@@ -14,11 +14,11 @@ import io.jsonwebtoken.security.Keys;
 public class JwtService {
 
     private final AuthProperties authProps;
-    private final SecretKey siginingKey;
+    private final SecretKey sigingKey;
 
     public JwtService(AuthProperties authProps) {
         this.authProps = authProps;
-        this.siginingKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(authProps.jwt().secret()));
+        this.sigingKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(authProps.jwt().secret()));
     }
 
 
@@ -35,13 +35,13 @@ public class JwtService {
                 .claim("roles", roles)
                 .issuedAt(java.util.Date.from(issuedAt))
                 .expiration(java.util.Date.from(issuedAt.plus(authProps.access().ttl())))
-                .signWith(siginingKey)
+                .signWith(sigingKey)
                 .compact();
     }
 
     public TokenClaims parseToken(String token) {
         Claims claims = Jwts.parser()
-                .verifyWith(siginingKey)
+                .verifyWith(sigingKey)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
