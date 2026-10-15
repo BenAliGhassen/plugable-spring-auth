@@ -1,7 +1,6 @@
 package com.example.demo.security.web;
 import java.time.Duration;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.example.demo.security.AuthProperties;
 import com.example.demo.security.AuthUser;
 import com.example.demo.security.AuthorityMapper;
 import com.example.demo.security.jwt.JwtService;
@@ -29,15 +29,13 @@ public class AuthController {
     private final JwtService jwtService;
     private final RefreshService refreshService;
     private final AuthenticationManager authManager;
-    private final long accessTokenExpirationMinutes;
-    private final boolean secureCookies;
+    private final AuthProperties authProps;
 
-        public AuthController(JwtService jwtService, RefreshService refreshService, AuthenticationManager authManager, @Value("${ACCESS_TOKEN_EXPIRATION_MINUTES:15}") long accessTokenExpirationMinutes, @Value("${COOKIE_SECURE:true}") boolean secureCookies){
+        public AuthController(JwtService jwtService, RefreshService refreshService, AuthenticationManager authManager, AuthProperties authProps){
             this.jwtService = jwtService;
             this.refreshService = refreshService;
             this.authManager = authManager;
-            this.accessTokenExpirationMinutes = accessTokenExpirationMinutes;
-            this.secureCookies = secureCookies;
+            this.authProps = authProps;
         }
 
 
@@ -51,8 +49,8 @@ public class AuthController {
             String accessToken = jwtService.generateToken(auth.getName(),roles);
             String refreshToken = refreshService.generateRefreshToken(userId);
             return ResponseEntity.noContent()
-                    .header(HttpHeaders.SET_COOKIE, accessTokenCookie(accessToken, Duration.ofMinutes(accessTokenExpirationMinutes)).toString(),
-                            refreshTokenCookie(refreshToken, RefreshService.REFRESH_TOKEN_TTL).toString()).build();
+                    .header(HttpHeaders.SET_COOKIE, accessTokenCookie(accessToken, authProps.access().ttl()).toString(),
+                            refreshTokenCookie(refreshToken, authProps.refresh().ttl()).toString()).build();
         }
 
         @PostMapping("/refresh")
@@ -61,8 +59,8 @@ public class AuthController {
                 String accessToken = jwtService.generateToken(rotation.username(), rotation.roles());
 
             return ResponseEntity.noContent()
-                    .header(HttpHeaders.SET_COOKIE, accessTokenCookie(accessToken, Duration.ofMinutes(accessTokenExpirationMinutes)).toString(),
-                            refreshTokenCookie(rotation.rawToken(), RefreshService.REFRESH_TOKEN_TTL).toString())
+                    .header(HttpHeaders.SET_COOKIE, accessTokenCookie(accessToken, authProps.access().ttl()).toString(),
+                            refreshTokenCookie(rotation.rawToken(), authProps.refresh().ttl()).toString())
                     .build();
         }
 
@@ -110,7 +108,7 @@ public class AuthController {
         private ResponseCookie accessTokenCookie(String value, Duration maxAge) {
             return ResponseCookie.from(AuthCookies.ACCESS_TOKEN, value)
                     .httpOnly(true)
-                    .secure(secureCookies)
+                    .secure(authProps.cookie().secure())
                     .sameSite("Strict")
                     .path(AuthCookies.ACCESS_PATH)
                     .maxAge(maxAge)
@@ -120,7 +118,7 @@ public class AuthController {
         private ResponseCookie refreshTokenCookie(String value, Duration maxAge) {
             return ResponseCookie.from(AuthCookies.REFRESH_TOKEN, value)
                     .httpOnly(true)
-                    .secure(secureCookies)
+                    .secure(authProps.cookie().secure())
                     .sameSite("Strict")
                     .path(AuthCookies.REFRESH_PATH)
                     .maxAge(maxAge)

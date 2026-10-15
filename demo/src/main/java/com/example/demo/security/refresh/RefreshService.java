@@ -2,7 +2,6 @@ package com.example.demo.security.refresh;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.HexFormat;
@@ -12,6 +11,7 @@ import org.springframework.security.authentication.AccountStatusUserDetailsCheck
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.demo.security.AuthProperties;
 import com.example.demo.security.AuthUser;
 import com.example.demo.security.AuthUserService;
 import com.example.demo.security.AuthorityMapper;
@@ -21,14 +21,15 @@ import com.example.demo.security.AuthorityMapper;
 public class RefreshService {
 
     private static final int TOKEN_LENGTH_BYTES = 64;
-    public static final Duration REFRESH_TOKEN_TTL = Duration.ofDays(7);
+    private final AuthProperties authProps;
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private final RefreshRepository refreshRepo;
     private final AuthUserService authService;
 
-    public RefreshService(RefreshRepository refreshRepo, AuthUserService authService) {
+    public RefreshService(RefreshRepository refreshRepo, AuthUserService authService, AuthProperties authProps) {
         this.refreshRepo = refreshRepo;
         this.authService = authService;
+        this.authProps = authProps;
     }
 
 
@@ -77,7 +78,7 @@ public class RefreshService {
         }
 
         String rawToken = createRawToken();
-        refreshRepo.save(new RefreshToken(hash(rawToken), false, Instant.now().plus(REFRESH_TOKEN_TTL), familyId, userId));
+        refreshRepo.save(new RefreshToken(hash(rawToken), false, Instant.now().plus(authProps.refresh().ttl()), familyId, userId));
         return rawToken;
     }
 

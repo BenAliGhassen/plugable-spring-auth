@@ -10,6 +10,8 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.security.AuthProperties;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -18,12 +20,10 @@ import io.jsonwebtoken.security.Keys;
 @Service
 public class JwtService {
 
-    private final SecretKey signingKey;
-    private final long accessTokenExpirationMinutes;
+    private final AuthProperties authProps;
 
-    public JwtService(@Value("${JWT_SECRET}") String base64Secret, @Value("${ACCESS_TOKEN_EXPIRATION_MINUTES:15}") long accessTokenExpirationMinutes) {
-        this.signingKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(base64Secret));
-        this.accessTokenExpirationMinutes = accessTokenExpirationMinutes;
+    public JwtService(AuthProperties authProps) {
+        this.authProps = authProps;
     }
 
 
@@ -37,14 +37,14 @@ public class JwtService {
                 .subject(username)
                 .claim("roles", roles)
                 .issuedAt(java.util.Date.from(issuedAt))
-                .expiration(java.util.Date.from(issuedAt.plus(accessTokenExpirationMinutes, ChronoUnit.MINUTES)))
-                .signWith(signingKey)
+                .expiration(java.util.Date.from(issuedAt.plus(authProps.access().ttl())))
+                .signWith(Keys.hmacShaKeyFor(Decoders.BASE64.decode(authProps.jwt().secret())))
                 .compact();
     }
 
     public TokenClaims parseToken(String token) {
         Claims claims = Jwts.parser()
-                .verifyWith(signingKey)
+                .verifyWith(Keys.hmacShaKeyFor(Decoders.BASE64.decode(authProps.jwt().secret())))
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();

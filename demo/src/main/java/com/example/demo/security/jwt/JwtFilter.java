@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import com.example.demo.security.AuthorityMapper;
 import com.example.demo.security.web.AuthCookies;
-
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

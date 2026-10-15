@@ -1,7 +1,6 @@
 package com.example.demo.security;
 import java.util.List;
-
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,9 +24,14 @@ import com.example.demo.security.jwt.JwtFilter;
 
 @Configuration
 @EnableScheduling 
+@EnableConfigurationProperties(AuthProperties.class)
 public class SecurityConfig {
 
-    @Value("${CORS_ALLOWED_ORIGINS:http://localhost:5173}") List<String> allowedOrigins;
+    private final AuthProperties authProps;
+
+    public SecurityConfig(AuthProperties authProps){
+        this.authProps = authProps;
+    }
 
     @Bean
     PasswordEncoder passwordEncoder() {
@@ -63,7 +67,7 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(allowedOrigins);
+        configuration.setAllowedOrigins(authProps.cors().origins());
         configuration.setAllowedMethods(List.of("GET", "POST", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Content-Type", "X-XSRF-TOKEN"));
         configuration.setAllowCredentials(true);
