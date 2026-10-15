@@ -1,12 +1,10 @@
 package com.example.demo.security;
 
-import org.springframework.stereotype.Component;
 
-@Component 
-public class LogSanitaizer {
+public final class LogSanitaizer {
     private LogSanitaizer(){}
 
-    public String cleanString(String value){
-        return value == null ? "null" : value;
+    public static  String cleanString(String value){
+        return value == null ? "null" : value.replaceAll("[\r\n]", "_");
     }
 }

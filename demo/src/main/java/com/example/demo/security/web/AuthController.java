@@ -39,15 +39,13 @@ public class AuthController {
     private final AuthenticationManager authManager;
     private final AuthProperties authProps;
     private final LoginAttemptsService loginAttemptsService;
-    private final LogSanitaizer logSanitaizer;
 
-        public AuthController(JwtService jwtService, RefreshService refreshService, AuthenticationManager authManager, AuthProperties authProps, LoginAttemptsService loginAttemptsService, LogSanitaizer logSanitaizer){
+        public AuthController(JwtService jwtService, RefreshService refreshService, AuthenticationManager authManager, AuthProperties authProps, LoginAttemptsService loginAttemptsService){
             this.jwtService = jwtService;
             this.refreshService = refreshService;
             this.authManager = authManager;
             this.authProps = authProps;
             this.loginAttemptsService = loginAttemptsService;
-            this.logSanitaizer = logSanitaizer;
         }
 
 
@@ -56,10 +54,10 @@ public class AuthController {
         @PostMapping("/login")
         public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest req, HttpServletRequest request){
             String ip = request.getRemoteAddr();
-            String finalIp = logSanitaizer.cleanString(ip);
-            String finalUsername = logSanitaizer.cleanString(req.username());
+            String finalIp = LogSanitaizer.cleanString(ip);
+            String finalUsername = LogSanitaizer.cleanString(req.username());
             if(loginAttemptsService.isBlocked(ip, req.username())){
-                log.warn("Login blocked for ip={}", finalIp);
+                log.warn("Login blocked for ip={} username={}", finalIp, finalUsername);
                 return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).header(HttpHeaders.RETRY_AFTER, String.valueOf(authProps.login().window().toSeconds())).build();
             }
            Authentication auth;
@@ -74,7 +72,7 @@ public class AuthController {
             loginAttemptsService.recordSuccess(ip, req.username());
             String userId = ((AuthUser) auth.getPrincipal()).getUserId();
             List<String> roles = AuthorityMapper.toRoleNames(auth.getAuthorities());
-            log.info("Login success ip={} username={} userId={}",ip, finalUsername, roles);
+            log.info("Login success ip={} userId={}",ip, userId);
             String accessToken = jwtService.generateToken(auth.getName(),roles);
             String refreshToken = refreshService.generateRefreshToken(userId);
             return ResponseEntity.noContent()

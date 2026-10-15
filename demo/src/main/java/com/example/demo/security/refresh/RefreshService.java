@@ -7,18 +7,15 @@ import java.util.Base64;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.UUID;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.example.demo.security.AuthProperties;
 import com.example.demo.security.AuthUser;
 import com.example.demo.security.AuthUserService;
 import com.example.demo.security.AuthorityMapper;
-import com.example.demo.security.LogSanitaizer;
 
 //THIS FILE IS RESPONSIBLE FOR GENERATING A REFRESH TOKEN, ROTATE IT AND REVOKE IT
 @Service
@@ -30,13 +27,12 @@ public class RefreshService {
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private final RefreshRepository refreshRepo;
     private final AuthUserService authService;
-    private final LogSanitaizer logSanitaizer;
+  
 
-    public RefreshService(RefreshRepository refreshRepo, AuthUserService authService, AuthProperties authProps, LogSanitaizer logSanitaizer) {
+    public RefreshService(RefreshRepository refreshRepo, AuthUserService authService, AuthProperties authProps) {
         this.refreshRepo = refreshRepo;
         this.authService = authService;
         this.authProps = authProps;
-        this.logSanitaizer = logSanitaizer;
     }
 
 
@@ -113,7 +109,7 @@ SECOND ATOMIC IS CONSUMEIFACTIVE IT HANDLE RACE CONDITION IF TWO REQ WITH SAME T
 
         if (currentToken.isRevoked()) {
             revokeTokenFamily(currentToken);
-            log.warn("Revoked token used userId={} familyId={}",logSanitaizer.cleanString(currentToken.getUserId()), logSanitaizer.cleanString(currentToken.getFamilyId()));
+            log.warn("Revoked token used userId={} familyId={}",currentToken.getUserId(), currentToken.getFamilyId());
             throw new InvalidToken("Invalid refresh token");
         }
 
@@ -136,6 +132,7 @@ SECOND ATOMIC IS CONSUMEIFACTIVE IT HANDLE RACE CONDITION IF TWO REQ WITH SAME T
         if (refreshRepo.consumeIfActive(tokenHash, now) != 1) {
             RefreshToken latestToken = refreshRepo.findByTokenHash(tokenHash)
                     .orElseThrow(() -> new InvalidToken("Invalid refresh token"));
+            log.warn("Refresh token reuse reason=concurrent userId={}, familyId={}", latestToken.getUserId(), latestToken.getFamilyId());        
             if (latestToken.isRevoked()) {
                 revokeTokenFamily(latestToken);
             }
@@ -156,6 +153,7 @@ SECOND ATOMIC IS CONSUMEIFACTIVE IT HANDLE RACE CONDITION IF TWO REQ WITH SAME T
 
         refreshToken.setRevoked(true);
         refreshRepo.save(refreshToken);
+        log.info("Refresh token revoked userId={}, familyId={}", refreshToken.getUserId(), refreshToken.getFamilyId()); 
     }
 
 /*THIS METHODE IS USED WHEN A USER CHANGE HIS PASSWORD */  
@@ -173,6 +171,6 @@ SECOND ATOMIC IS CONSUMEIFACTIVE IT HANDLE RACE CONDITION IF TWO REQ WITH SAME T
         String tokenHash = hash(raw);
         RefreshToken refreshToken = refreshRepo.findByTokenHash(tokenHash).filter(token -> !token.isRevoked() && token.getExpiresAt().isAfter(Instant.now())).orElseThrow(() -> new InvalidToken("Invalid refresh token"));       
         revokeAllForUser(refreshToken.getUserId());
-        log.info("User={} logged out all sessions",logSanitaizer.cleanString(refreshToken.getUserId()));
+        log.info("logged out all sessions User={}",refreshToken.getUserId());
             }       
 }
