@@ -109,7 +109,7 @@ SECOND ATOMIC IS CONSUMEIFACTIVE IT HANDLE RACE CONDITION IF TWO REQ WITH SAME T
 
         if (currentToken.isRevoked()) {
             revokeTokenFamily(currentToken);
-            log.warn("Refresh token used userId={} familyId={}",currentToken.getUserId(), currentToken.getFamilyId());
+            log.warn("Refresh token reuse reason=revoked userId={} familyId={}",currentToken.getUserId(), currentToken.getFamilyId());
             throw new InvalidToken("Invalid refresh token");
         }
 
