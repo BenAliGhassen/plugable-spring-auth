@@ -10,7 +10,9 @@ public record AuthProperties(
     @DefaultValue Access access,
     @DefaultValue Refresh refresh,
     @DefaultValue Cookie cookie,
-    @DefaultValue Cors cors) {
+    @DefaultValue Cors cors,
+    @DefaultValue Login login
+) {
 
 public AuthProperties {
     if(refresh.ttl().compareTo(access.ttl()) <= 0){
@@ -58,6 +60,23 @@ public record Cors(List<String> origins){
     if(origins == null || origins.isEmpty() || origins.contains("*")){
         throw new IllegalArgumentException("Origins is required and must be diffrent of '*' ");
     }
+    }
+}
+
+public record Login(@DefaultValue("5") int maxFailure, @DefaultValue("20") int maxIpFailure, @DefaultValue("15m") Duration window) {
+    public Login{
+        if(maxFailure >= maxIpFailure){
+            throw new IllegalArgumentException("LOGIN_MAXIPFAILURE should be greater than LOGIN_MAXFAILURE");
+        }
+        if(maxFailure <= 0){
+            throw new IllegalArgumentException("LOGIN_MAXFAILURE must be greater than zero");
+        }
+        if(maxIpFailure <= 0){
+            throw new IllegalArgumentException("LOGIN_MAXIPFAILURE must be greater than zero");
+        }
+        if(window.isNegative() || window.isZero() || window == null){
+            throw new IllegalArgumentException("LOGIN_WINDOW value must be filled with positive value");
+        }
     }
 }
 

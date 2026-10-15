@@ -2,10 +2,13 @@ package com.example.demo.security.web;
 import java.time.Duration;
 import java.util.List;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,9 +18,12 @@ import com.example.demo.security.AuthProperties;
 import com.example.demo.security.AuthUser;
 import com.example.demo.security.AuthorityMapper;
 import com.example.demo.security.jwt.JwtService;
+import com.example.demo.security.login.LoginAttemptsService;
 import com.example.demo.security.refresh.InvalidToken;
 import com.example.demo.security.refresh.RefreshService;
 import com.example.demo.security.refresh.RefreshTokenRotation;
+
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 
@@ -30,20 +36,34 @@ public class AuthController {
     private final RefreshService refreshService;
     private final AuthenticationManager authManager;
     private final AuthProperties authProps;
+    private final LoginAttemptsService loginAttemptsService;
 
-        public AuthController(JwtService jwtService, RefreshService refreshService, AuthenticationManager authManager, AuthProperties authProps){
+        public AuthController(JwtService jwtService, RefreshService refreshService, AuthenticationManager authManager, AuthProperties authProps, LoginAttemptsService loginAttemptsService){
             this.jwtService = jwtService;
             this.refreshService = refreshService;
             this.authManager = authManager;
             this.authProps = authProps;
+            this.loginAttemptsService = loginAttemptsService;
         }
 
 
 
 
         @PostMapping("/login")
-        public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest req) {
-            Authentication auth = authManager.authenticate(UsernamePasswordAuthenticationToken.unauthenticated(req.username(),req.password()));
+        public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest req, HttpServletRequest request){
+            String ip = request.getRemoteAddr();
+            if(loginAttemptsService.isBlocked(ip, req.username())){
+                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).header(HttpHeaders.RETRY_AFTER, String.valueOf(authProps.login().window().toSeconds())).build();
+            }
+           Authentication auth;
+           try {
+                auth = authManager.authenticate(UsernamePasswordAuthenticationToken.unauthenticated(req.username(),req.password()));
+           } catch (AuthenticationException e) {
+                loginAttemptsService.recordFailure(ip, req.username());
+                throw e;
+           }
+
+            loginAttemptsService.recordSuccess(ip, req.username());
             String userId = ((AuthUser) auth.getPrincipal()).getUserId();
             List<String> roles = AuthorityMapper.toRoleNames(auth.getAuthorities());
             String accessToken = jwtService.generateToken(auth.getName(),roles);
