@@ -3,7 +3,6 @@ import java.time.Duration;
 import java.util.List;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,7 +21,6 @@ import com.example.demo.security.login.LoginAttemptsService;
 import com.example.demo.security.refresh.InvalidToken;
 import com.example.demo.security.refresh.RefreshService;
 import com.example.demo.security.refresh.RefreshTokenRotation;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;

@@ -66,16 +66,16 @@ public record Cors(List<String> origins){
 public record Login(@DefaultValue("5") int maxFailure, @DefaultValue("20") int maxIpFailure, @DefaultValue("15m") Duration window) {
     public Login{
         if(maxFailure >= maxIpFailure){
-            throw new IllegalArgumentException("LOGIN_MAXIPFAILURE should be greater than LOGIN_MAXFAILURE");
+            throw new IllegalArgumentException("AUTH_LOGIN_MAXIPFAILURE should be greater than LOGIN_MAXFAILURE");
         }
         if(maxFailure <= 0){
-            throw new IllegalArgumentException("LOGIN_MAXFAILURE must be greater than zero");
+            throw new IllegalArgumentException("AUTH_LOGIN_MAXFAILURE must be greater than zero");
         }
         if(maxIpFailure <= 0){
-            throw new IllegalArgumentException("LOGIN_MAXIPFAILURE must be greater than zero");
+            throw new IllegalArgumentException("AUTH_LOGIN_MAXIPFAILURE must be greater than zero");
         }
-        if(window.isNegative() || window.isZero() || window == null){
-            throw new IllegalArgumentException("LOGIN_WINDOW value must be filled with positive value");
+        if(window == null || window.isNegative() || window.isZero()){
+            throw new IllegalArgumentException("AUTH_LOGIN_WINDOW value must be filled with positive value");
         }
     }
 }

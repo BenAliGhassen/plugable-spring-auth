@@ -9,13 +9,13 @@ public class LoginAttemptsService {
 
     private final Cache<String, Integer> ips;
     private final Cache<String, Integer> pairs;
-    private static final Long MAX_ENTRIES = 100_000L;
+    private static final long MAX_ENTRIES = 100_000;
 
     private final AuthProperties authProps;
     public LoginAttemptsService(AuthProperties authProps){
         this.authProps = authProps;
         this.pairs = Caffeine.newBuilder().expireAfterWrite(authProps.login().window()).maximumSize(MAX_ENTRIES).build();
-        this.ips = Caffeine.newBuilder().expireAfterAccess(authProps.login().window()).maximumSize(MAX_ENTRIES).build();
+        this.ips = Caffeine.newBuilder().expireAfterWrite(authProps.login().window()).maximumSize(MAX_ENTRIES).build();
     }
 
     private String pairKey(String ip, String username){
@@ -29,7 +29,7 @@ public class LoginAttemptsService {
     public boolean isBlocked(String ip, String username){
         int pairsCount = count(pairs.getIfPresent(pairKey(ip, username)));
         int ipsCount = count(ips.getIfPresent(ip));
-        if(pairsCount > authProps.login().maxFailure() || ipsCount > authProps.login().maxIpFailure()){
+        if(pairsCount >= authProps.login().maxFailure() || ipsCount >= authProps.login().maxIpFailure()){
             return true;
         }
         return false;
