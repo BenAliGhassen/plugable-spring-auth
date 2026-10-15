@@ -16,7 +16,7 @@ public record AuthProperties(
 
 public AuthProperties {
     if(refresh.ttl().compareTo(access.ttl()) <= 0){
-        throw new IllegalArgumentException("AUTH_REFRESH_RETENTION value must be greater than AUTH_ACCESS_TTL");
+        throw new IllegalArgumentException("AUTH_REFRESH_TTL value must be greater than AUTH_ACCESS_TTL");
     }
 }
 
@@ -66,7 +66,7 @@ public record Cors(List<String> origins){
 public record Login(@DefaultValue("5") int maxFailure, @DefaultValue("20") int maxIpFailure, @DefaultValue("15m") Duration window) {
     public Login{
         if(maxFailure >= maxIpFailure){
-            throw new IllegalArgumentException("AUTH_LOGIN_MAXIPFAILURE should be greater than LOGIN_MAXFAILURE");
+            throw new IllegalArgumentException("AUTH_LOGIN_MAXIPFAILURE should be greater than AUTH_LOGIN_MAXFAILURE");
         }
         if(maxFailure <= 0){
             throw new IllegalArgumentException("AUTH_LOGIN_MAXFAILURE must be greater than zero");
