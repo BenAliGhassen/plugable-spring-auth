@@ -1,6 +1,8 @@
 package com.example.demo.security.web;
 import java.time.Duration;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.security.AuthProperties;
 import com.example.demo.security.AuthUser;
 import com.example.demo.security.AuthorityMapper;
+import com.example.demo.security.LogSanitaizer;
 import com.example.demo.security.jwt.JwtService;
 import com.example.demo.security.login.LoginAttemptsService;
 import com.example.demo.security.refresh.InvalidToken;
@@ -30,18 +33,21 @@ import org.springframework.security.core.Authentication;
 @RequestMapping("/auth")
 @RestController 
 public class AuthController {
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
     private final JwtService jwtService;
     private final RefreshService refreshService;
     private final AuthenticationManager authManager;
     private final AuthProperties authProps;
     private final LoginAttemptsService loginAttemptsService;
+    private final LogSanitaizer logSanitaizer;
 
-        public AuthController(JwtService jwtService, RefreshService refreshService, AuthenticationManager authManager, AuthProperties authProps, LoginAttemptsService loginAttemptsService){
+        public AuthController(JwtService jwtService, RefreshService refreshService, AuthenticationManager authManager, AuthProperties authProps, LoginAttemptsService loginAttemptsService, LogSanitaizer logSanitaizer){
             this.jwtService = jwtService;
             this.refreshService = refreshService;
             this.authManager = authManager;
             this.authProps = authProps;
             this.loginAttemptsService = loginAttemptsService;
+            this.logSanitaizer = logSanitaizer;
         }
 
 
@@ -50,7 +56,10 @@ public class AuthController {
         @PostMapping("/login")
         public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest req, HttpServletRequest request){
             String ip = request.getRemoteAddr();
+            String finalIp = logSanitaizer.cleanString(ip);
+            String finalUsername = logSanitaizer.cleanString(req.username());
             if(loginAttemptsService.isBlocked(ip, req.username())){
+                log.warn("Login blocked for ip={}", finalIp);
                 return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).header(HttpHeaders.RETRY_AFTER, String.valueOf(authProps.login().window().toSeconds())).build();
             }
            Authentication auth;
@@ -58,12 +67,14 @@ public class AuthController {
                 auth = authManager.authenticate(UsernamePasswordAuthenticationToken.unauthenticated(req.username(),req.password()));
            } catch (AuthenticationException e) {
                 loginAttemptsService.recordFailure(ip, req.username());
+                log.warn("Login failed ip={} username={}", finalIp, finalUsername);
                 throw e;
            }
 
             loginAttemptsService.recordSuccess(ip, req.username());
             String userId = ((AuthUser) auth.getPrincipal()).getUserId();
             List<String> roles = AuthorityMapper.toRoleNames(auth.getAuthorities());
+            log.info("Login success ip={} username={} userId={}",ip, finalUsername, roles);
             String accessToken = jwtService.generateToken(auth.getName(),roles);
             String refreshToken = refreshService.generateRefreshToken(userId);
             return ResponseEntity.noContent()
@@ -110,7 +121,6 @@ public class AuthController {
                     // Logout should still clear the cookies when the refresh token is already invalid.
                 }
             }
-
 
             return ResponseEntity.noContent()
                     .header(HttpHeaders.SET_COOKIE, accessTokenCookie("", Duration.ZERO).toString(),refreshTokenCookie("", Duration.ZERO).toString()).build();

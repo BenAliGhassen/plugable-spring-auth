@@ -7,6 +7,9 @@ import java.util.Base64;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,21 +18,25 @@ import com.example.demo.security.AuthProperties;
 import com.example.demo.security.AuthUser;
 import com.example.demo.security.AuthUserService;
 import com.example.demo.security.AuthorityMapper;
+import com.example.demo.security.LogSanitaizer;
 
 //THIS FILE IS RESPONSIBLE FOR GENERATING A REFRESH TOKEN, ROTATE IT AND REVOKE IT
 @Service
 public class RefreshService {
 
+    private static final Logger log = LoggerFactory.getLogger(RefreshService.class);
     private static final int TOKEN_LENGTH_BYTES = 64;
     private final AuthProperties authProps;
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private final RefreshRepository refreshRepo;
     private final AuthUserService authService;
+    private final LogSanitaizer logSanitaizer;
 
-    public RefreshService(RefreshRepository refreshRepo, AuthUserService authService, AuthProperties authProps) {
+    public RefreshService(RefreshRepository refreshRepo, AuthUserService authService, AuthProperties authProps, LogSanitaizer logSanitaizer) {
         this.refreshRepo = refreshRepo;
         this.authService = authService;
         this.authProps = authProps;
+        this.logSanitaizer = logSanitaizer;
     }
 
 
@@ -106,6 +113,7 @@ SECOND ATOMIC IS CONSUMEIFACTIVE IT HANDLE RACE CONDITION IF TWO REQ WITH SAME T
 
         if (currentToken.isRevoked()) {
             revokeTokenFamily(currentToken);
+            log.warn("Revoked token used userId={} familyId={}",logSanitaizer.cleanString(currentToken.getUserId()), logSanitaizer.cleanString(currentToken.getFamilyId()));
             throw new InvalidToken("Invalid refresh token");
         }
 
@@ -165,5 +173,6 @@ SECOND ATOMIC IS CONSUMEIFACTIVE IT HANDLE RACE CONDITION IF TWO REQ WITH SAME T
         String tokenHash = hash(raw);
         RefreshToken refreshToken = refreshRepo.findByTokenHash(tokenHash).filter(token -> !token.isRevoked() && token.getExpiresAt().isAfter(Instant.now())).orElseThrow(() -> new InvalidToken("Invalid refresh token"));       
         revokeAllForUser(refreshToken.getUserId());
+        log.info("User={} logged out all sessions",logSanitaizer.cleanString(refreshToken.getUserId()));
             }       
 }

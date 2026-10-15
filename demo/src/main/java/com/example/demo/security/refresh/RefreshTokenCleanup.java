@@ -1,6 +1,7 @@
 package com.example.demo.security.refresh;
 import java.time.Instant;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,7 +12,7 @@ import com.example.demo.security.AuthProperties;
 //THIS FILE CALL THE QUERY TO DELETE AN EXPIRED REFRESH TOKEN EVERYDAY AT 3AM
 @Component 
 public class RefreshTokenCleanup {
-    private static final Logger log = Logger.getLogger(RefreshTokenCleanup.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(RefreshTokenCleanup.class);
     private final RefreshRepository refreshRepo;
     private final AuthProperties authProps;
     // 0 secondes 0 minute 3 hours * any_day_of_month * any_month * any_day_of_week ===> everyday at 3am
