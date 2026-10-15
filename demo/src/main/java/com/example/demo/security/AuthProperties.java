@@ -16,7 +16,7 @@ public record AuthProperties(
 
 public AuthProperties {
     if(refresh.ttl().compareTo(access.ttl()) <= 0){
-        throw new IllegalArgumentException("Retention ttl value must be greater than Access ttl");
+        throw new IllegalArgumentException("AUTH_REFRESH_RETENTION value must be greater than AUTH_ACCESS_TTL");
     }
 }
 
@@ -24,11 +24,11 @@ public AuthProperties {
 public record Refresh(@DefaultValue("3d") Duration retention, @DefaultValue("7d") Duration ttl){
     public Refresh {
     if(retention == null || retention.isNegative() || retention.isZero()){
-        throw new IllegalArgumentException("Retention value must be filled with positive value");
+        throw new IllegalArgumentException("AUTH_REFRESH_RETENTION value must be filled with positive value");
     }
 
     if(ttl == null || ttl.isNegative() || ttl.isZero()){
-        throw new IllegalArgumentException("Refresh TTL value must be filled with positive value");
+        throw new IllegalArgumentException("AUTH_REFRESH_TTL value must be filled with positive value");
     }
     }
 }
@@ -36,7 +36,7 @@ public record Refresh(@DefaultValue("3d") Duration retention, @DefaultValue("7d"
 public record Jwt(String secret){
     public Jwt {
     if(secret == null || secret.isBlank()){
-        throw new IllegalArgumentException("Secret is required");
+        throw new IllegalArgumentException("AUTH_JWT_SECRET is required");
     }
     }
     @Override 
@@ -48,7 +48,7 @@ public record Jwt(String secret){
 public record Access(@DefaultValue("15m") Duration ttl){
     public Access {
     if(ttl == null || ttl.isNegative() || ttl.isZero()){
-        throw new IllegalArgumentException("Access TTL value must be filled with positive value");
+        throw new IllegalArgumentException("AUTH_ACCESS_TTL value must be filled with positive value");
     }
     }
 }
@@ -58,7 +58,7 @@ public record Cookie(@DefaultValue("true") boolean secure){}
 public record Cors(List<String> origins){
     public Cors {
     if(origins == null || origins.isEmpty() || origins.contains("*")){
-        throw new IllegalArgumentException("Origins is required and must be diffrent of '*' ");
+        throw new IllegalArgumentException("AUTH_CORS_ORIGINS is required and must be diffrent of '*' ");
     }
     }
 }

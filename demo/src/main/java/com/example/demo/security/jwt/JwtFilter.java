@@ -16,7 +16,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-//THIS FILE IS JWT FILTER THIS FILTER IS THE FIRST IN OUR FILTER CHAIN IT CHECK IF THERE IS A JWT TOKEN IN THE REQUEST HEADER AND INITALIZE THE SECURITY CONTEXT WITH AN "UsernamePasswordAuthenticationToken" OBJ OR LET IT EMPTY
+//THIS FILE IS JWT FILTER THIS FILTER RUN BEFORE UsernamePasswordAuthenticationFilter IT CHECK IF THERE IS A JWT TOKEN IN THE REQUEST HEADER AND INITALIZE THE SECURITY CONTEXT WITH AN "UsernamePasswordAuthenticationToken" OBJ OR LET IT EMPTY
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 

@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.demo.security.AuthProperties;
 
 
-//THIS FILE CALL THE QUERY TO DELETE AN EXPIRED REFRESH TOKEN EVERYDAY AT 3AM
+//THIS FILE CALL THE QUERY TO DELETE AN EXPIRED REFRESH TOKEN ON AUTH_CLEANUP_CRON ->(EVERYDAY AT 3AM by default)
 @Component 
 public class RefreshTokenCleanup {
     private static final Logger log = LoggerFactory.getLogger(RefreshTokenCleanup.class);
