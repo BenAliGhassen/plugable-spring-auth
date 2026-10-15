@@ -12,13 +12,20 @@ public record AuthProperties(
     @DefaultValue Cookie cookie,
     @DefaultValue Cors cors) {
 
+public AuthProperties {
+    if(refresh.ttl().compareTo(access.ttl()) < 0){
+        throw new IllegalArgumentException("Retention ttl value must be greater than Access ttl");
+    }
+}
+
+
 public record Refresh(@DefaultValue("3d") Duration retention, @DefaultValue("7d") Duration ttl){
     public Refresh {
-    if(retention == null || retention.isNegative()){
+    if(retention == null || retention.isNegative() || retention.isZero()){
         throw new IllegalArgumentException("Retention value must be filled with positive value");
     }
 
-    if(ttl == null || ttl.isNegative()){
+    if(ttl == null || ttl.isNegative() || ttl.isZero()){
         throw new IllegalArgumentException("TTL value must be filled with positive value");
     }
     }
@@ -34,7 +41,7 @@ public record Jwt(String secret){
 
 public record Access(@DefaultValue("15m") Duration ttl){
     public Access {
-    if(ttl == null || ttl.isNegative()){
+    if(ttl == null || ttl.isNegative() || ttl.isZero()){
         throw new IllegalArgumentException("TTL value must be filled with positive value");
     }
     }
