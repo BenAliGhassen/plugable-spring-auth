@@ -31,6 +31,6 @@ public class RefreshTokenCleanup {
         Instant cutoff = Instant.now().minus(authProps.refresh().retention());
         int result = refreshRepo.deleteToken(cutoff);
         
-        log.info("Refresh Token cleanup : " + result + " expired rows deleted");
+        log.info("Refresh Token cleanup expired rows rows={} deleted",result);
     }
 }
