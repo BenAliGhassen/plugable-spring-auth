@@ -1,6 +1,8 @@
 package com.example.demo.security;
 import java.time.Duration;
 import java.util.List;
+import java.util.regex.Pattern;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
@@ -56,23 +58,32 @@ public record Access(@DefaultValue("15m") Duration ttl){
 public record Cookie(@DefaultValue("true") boolean secure){}
 
 public record Cors(List<String> origins){
-    public Cors {
-    if(origins == null || origins.isEmpty() || origins.contains("*")){
-        throw new IllegalArgumentException("AUTH_CORS_ORIGINS is required and must be diffrent of '*' ");
+    private static final Pattern ORIGIN = Pattern.compile("https?://[a-z0-9.-]+(:[0-9]{1,5})?");
+    public Cors {    
+        if(origins == null || origins.isEmpty()){
+            throw new IllegalArgumentException("AUTH_CORS_ORIGINS is required");
+        }
+        for(String origin:origins)
+            validateOrigin(origin);
     }
+    private static void validateOrigin(String origin){
+        if(origin == null || !ORIGIN.matcher(origin).matches()){
+            throw new IllegalArgumentException("AUTH_CORS_ORIGINS is invalid origin " + origin + ". Excpected lowercase scheme://host[:port]");
+        }
+        
     }
 }
 
 public record Login(@DefaultValue("5") int maxFailure, @DefaultValue("20") int maxIpFailure, @DefaultValue("15m") Duration window) {
     public Login{
-        if(maxFailure >= maxIpFailure){
-            throw new IllegalArgumentException("AUTH_LOGIN_MAXIPFAILURE should be greater than AUTH_LOGIN_MAXFAILURE");
-        }
         if(maxFailure <= 0){
             throw new IllegalArgumentException("AUTH_LOGIN_MAXFAILURE must be greater than zero");
         }
         if(maxIpFailure <= 0){
             throw new IllegalArgumentException("AUTH_LOGIN_MAXIPFAILURE must be greater than zero");
+        }
+        if(maxFailure >= maxIpFailure){
+            throw new IllegalArgumentException("AUTH_LOGIN_MAXIPFAILURE should be greater than AUTH_LOGIN_MAXFAILURE");
         }
         if(window == null || window.isNegative() || window.isZero()){
             throw new IllegalArgumentException("AUTH_LOGIN_WINDOW value must be filled with positive value");
