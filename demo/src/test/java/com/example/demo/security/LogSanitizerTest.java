@@ -1,12 +1,9 @@
 package com.example.demo.security;
 import static org.assertj.core.api.Assertions.assertThat;
-
-
 import org.junit.jupiter.api.Test;
 
-import com.example.demo.security.LogSanitizer;
 
-public class LogSanitizerTest {
+class LogSanitizerTest {
     @Test
     void replacesLineFeedWithUnderscore() {
         String input = "x\nFAKE LINE";
@@ -33,7 +30,7 @@ public class LogSanitizerTest {
     }
 
     @Test
-    void replacesWindowsLineEndingWithTwoUndersscores() {
+    void replacesWindowsLineEndingWithTwoUnderscores() {
         assertThat(LogSanitizer.cleanString("x\r\nFAKE")).isEqualTo("x__FAKE");
     }
 }
