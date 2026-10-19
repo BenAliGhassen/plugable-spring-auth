@@ -1,8 +1,10 @@
 package com.example.demo.security.jwt;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import javax.crypto.SecretKey;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.example.demo.security.AuthProperties;
 import io.jsonwebtoken.Claims;
@@ -15,10 +17,17 @@ public class JwtService {
 
     private final AuthProperties authProps;
     private final SecretKey sigingKey;
+    private final Clock clock;
 
+    @Autowired 
     public JwtService(AuthProperties authProps) {
+        this(authProps, Clock.systemUTC());
+    }
+
+    JwtService(AuthProperties authProps, Clock clock) {
         this.authProps = authProps;
         this.sigingKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(authProps.jwt().secret()));
+        this.clock = clock;
     }
 
 
@@ -29,7 +38,7 @@ public class JwtService {
         }
 
 
-        Instant issuedAt = Instant.now();
+        Instant issuedAt = Instant.now(clock);
         return Jwts.builder()
                 .subject(username)
                 .claim("roles", roles)

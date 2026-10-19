@@ -14,7 +14,6 @@ public class LoginAttemptsService {
     private final Cache<String, Integer> pairs;
     private static final long MAX_ENTRIES = 100_000;
     private final AuthProperties authProps;
-    private final Ticker ticker;
 
     //Same as refreshService, this cloack was previously invesible but called by caffeine we make visible so we can tests it
     @Autowired 
@@ -26,7 +25,6 @@ public class LoginAttemptsService {
         this.authProps = authProps;
         this.pairs = Caffeine.newBuilder().expireAfterWrite(authProps.login().window()).maximumSize(MAX_ENTRIES).ticker(ticker).build();
         this.ips = Caffeine.newBuilder().expireAfterWrite(authProps.login().window()).maximumSize(MAX_ENTRIES).ticker(ticker).build();
-        this.ticker = ticker;
     }
 
     private String pairKey(String ip, String username){
