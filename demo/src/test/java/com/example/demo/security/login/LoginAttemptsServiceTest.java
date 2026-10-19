@@ -136,7 +136,7 @@ class LoginAttemptsServiceTest {
     }
 
     @Test
-    void blockedIpDoesNotPassWithOtherUsername() {
+    void ipblockedChecksDoNotExtendTheBlock() {
         recordFailuresForDifferentUsernames(20);
         ticker.advance(Duration.ofMinutes(14));
         assertThat(service.isBlocked(IP, "user@example.com")).isTrue();
