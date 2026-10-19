@@ -68,7 +68,7 @@ public record Cors(List<String> origins){
     }
     private static void validateOrigin(String origin){
         if(origin == null || !ORIGIN.matcher(origin).matches()){
-            throw new IllegalArgumentException("AUTH_CORS_ORIGINS is invalid origin " + origin + ". Excpected lowercase scheme://host[:port]");
+            throw new IllegalArgumentException("AUTH_CORS_ORIGINS is invalid origin " + origin + ". Expected lowercase scheme://host[:port]");
         }
         
     }

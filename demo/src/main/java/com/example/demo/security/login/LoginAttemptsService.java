@@ -1,8 +1,11 @@
 package com.example.demo.security.login;
 import com.github.benmanes.caffeine.cache.Cache;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.example.demo.security.AuthProperties;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.Ticker;
 
 @Service 
 public class LoginAttemptsService {
@@ -10,12 +13,20 @@ public class LoginAttemptsService {
     private final Cache<String, Integer> ips;
     private final Cache<String, Integer> pairs;
     private static final long MAX_ENTRIES = 100_000;
-
     private final AuthProperties authProps;
+    private final Ticker ticker;
+
+    //Same as refreshService, this cloack was previously invesible but called by caffeine we make visible so we can tests it
+    @Autowired 
     public LoginAttemptsService(AuthProperties authProps){
+        this(authProps, Ticker.systemTicker());
+    }
+
+    LoginAttemptsService(AuthProperties authProps, Ticker ticker){
         this.authProps = authProps;
-        this.pairs = Caffeine.newBuilder().expireAfterWrite(authProps.login().window()).maximumSize(MAX_ENTRIES).build();
-        this.ips = Caffeine.newBuilder().expireAfterWrite(authProps.login().window()).maximumSize(MAX_ENTRIES).build();
+        this.pairs = Caffeine.newBuilder().expireAfterWrite(authProps.login().window()).maximumSize(MAX_ENTRIES).ticker(ticker).build();
+        this.ips = Caffeine.newBuilder().expireAfterWrite(authProps.login().window()).maximumSize(MAX_ENTRIES).ticker(ticker).build();
+        this.ticker = ticker;
     }
 
     private String pairKey(String ip, String username){
