@@ -60,7 +60,7 @@ class LoginAttemptsServiceTest {
 
     @Test
     void failuresForUsernameOnDifferentIpDoNotBlockThePair() {
-        for (int failure = 0; failure < 4; failure++) {
+        for (int failure = 0; failure < 5; failure++) {
             service.recordFailure(IP, USERNAME);
         }
 
@@ -68,7 +68,7 @@ class LoginAttemptsServiceTest {
     }
 
     @Test
-    void usernameIsNotNormalizedByTrimmingAndLowercasing() {
+    void usernameIsNormalizedByTrimmingAndLowercasing() {
         for (int failure = 0; failure < 4; failure++) {
             service.recordFailure(IP, "Ali@X.com ");
         }
@@ -133,6 +133,17 @@ class LoginAttemptsServiceTest {
         ticker.advance(Duration.ofMinutes(1));
 
         assertThat(service.isBlocked(IP, USERNAME)).isFalse();
+    }
+
+    @Test
+    void blockedIpDoesNotPassWithOtherUsername() {
+        recordPairFailures(20);
+        ticker.advance(Duration.ofMinutes(14));
+        assertThat(service.isBlocked(IP, "user@example.com")).isTrue();
+
+        ticker.advance(Duration.ofMinutes(1));
+
+        assertThat(service.isBlocked(IP, "user@example.com")).isFalse();
     }
 
     private void recordPairFailures(int count) {
