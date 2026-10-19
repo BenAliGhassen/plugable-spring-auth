@@ -2,6 +2,7 @@ package com.example.demo.security.jwt;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +52,7 @@ public class JwtService {
     public TokenClaims parseToken(String token) {
         Claims claims = Jwts.parser()
                 .verifyWith(sigingKey)
+                .clock(()-> Date.from(clock.instant()))
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
