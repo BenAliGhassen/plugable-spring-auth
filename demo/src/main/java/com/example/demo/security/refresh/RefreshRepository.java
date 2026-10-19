@@ -26,8 +26,8 @@ public interface RefreshRepository extends JpaRepository<RefreshToken, Long> {
 
         //This query is used when a profile is locked or a password is changed we revoke all tokens previously owned by this profile
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query(value = "UPDATE refresh_tokens SET revoked = true WHERE user_id = :userId AND revoked = false AND expires_at > NOW()", nativeQuery = true)
-    int revokeAllByUserId(@Param("userId") String userId);
+    @Query(value = "UPDATE refresh_tokens SET revoked = true WHERE user_id = :userId AND revoked = false AND expires_at > :now", nativeQuery = true)
+    int revokeAllByUserId(@Param("userId") String userId, @Param("now") Instant now);
 
         //This query is used in a cron job it delete expired token if they pass a cutoff (expired_at + retention_days)
     @Modifying(clearAutomatically = true, flushAutomatically = true)

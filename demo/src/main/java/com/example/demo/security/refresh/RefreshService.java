@@ -2,6 +2,7 @@ package com.example.demo.security.refresh;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.HexFormat;
@@ -9,6 +10,7 @@ import java.util.List;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,12 +29,20 @@ public class RefreshService {
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private final RefreshRepository refreshRepo;
     private final AuthUserService authService;
-  
-
+    private final Clock clock;
+    
+    /*As clock is not a real bean and cannot be a bean to prevent colliding with adopters beans we use this constractor to call a second constractor passing the system clock*/
+    @Autowired
     public RefreshService(RefreshRepository refreshRepo, AuthUserService authService, AuthProperties authProps) {
+        this(refreshRepo, authService, authProps, Clock.systemUTC());
+    }
+
+    
+    RefreshService(RefreshRepository refreshRepo, AuthUserService authService, AuthProperties authProps, Clock clock) {
         this.refreshRepo = refreshRepo;
         this.authService = authService;
         this.authProps = authProps;
+        this.clock = clock;
     }
 
 
@@ -81,7 +91,7 @@ public class RefreshService {
         }
 
         String rawToken = createRawToken();
-        refreshRepo.save(new RefreshToken(hash(rawToken), false, Instant.now().plus(authProps.refresh().ttl()), familyId, userId));
+        refreshRepo.save(new RefreshToken(hash(rawToken), false, Instant.now(clock).plus(authProps.refresh().ttl()), familyId, userId));
         return rawToken;
     }
 
@@ -103,7 +113,7 @@ SECOND ATOMIC IS CONSUMEIFACTIVE IT HANDLE RACE CONDITION IF TWO REQ WITH SAME T
         }
 
         String tokenHash = hash(rawToken);
-        Instant now = Instant.now();
+        Instant now = Instant.now(clock);
         RefreshToken currentToken = refreshRepo.findByTokenHash(tokenHash)
                 .orElseThrow(() -> new InvalidToken("Invalid refresh token"));
 
@@ -161,14 +171,14 @@ SECOND ATOMIC IS CONSUMEIFACTIVE IT HANDLE RACE CONDITION IF TWO REQ WITH SAME T
         if(userId == null || userId.isBlank()){
             throw new IllegalArgumentException("User id must not be blank");
         }
-        refreshRepo.revokeAllByUserId(userId);
+        refreshRepo.revokeAllByUserId(userId, Instant.now(clock));
     } 
     
 /*THIS METHODE IS USED WHEN A LOGOUT ALL IS CLICKED */
     @Transactional
     public void revokeAll(String raw){
         String tokenHash = hash(raw);
-        RefreshToken refreshToken = refreshRepo.findByTokenHash(tokenHash).filter(token -> !token.isRevoked() && token.getExpiresAt().isAfter(Instant.now())).orElseThrow(() -> new InvalidToken("Invalid refresh token"));       
+        RefreshToken refreshToken = refreshRepo.findByTokenHash(tokenHash).filter(token -> !token.isRevoked() && token.getExpiresAt().isAfter(Instant.now(clock))).orElseThrow(() -> new InvalidToken("Invalid refresh token"));       
         revokeAllForUser(refreshToken.getUserId());
         log.info("logged out all sessions User={}",refreshToken.getUserId());
             }       
