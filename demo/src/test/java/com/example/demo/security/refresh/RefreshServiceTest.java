@@ -216,7 +216,7 @@ class RefreshServiceTest {
         RefreshToken activeToken = storedToken(false, T.plusSeconds(60), FAMILY_ID);
         RefreshToken tokenNowRevoked = storedToken(true, T.plusSeconds(60), FAMILY_ID); 
         when(refreshRepository.findByTokenHash(TOKEN_HASH))
-                .thenReturn(Optional.of(activeToken), Optional.of(tokenNowRevoked));
+                .thenReturn(Optional.of(activeToken)).thenReturn(Optional.of(tokenNowRevoked));
         when(authUserService.loadUserById(USER_ID)).thenReturn(activeUser());
         when(refreshRepository.consumeIfActive(TOKEN_HASH, T)).thenReturn(0);
 
@@ -231,7 +231,7 @@ class RefreshServiceTest {
     void rotateRefreshTokenDoesNotRevokeFamilyWhenConcurrentConsumeFailsButTokenIsNotRevoked() {
         RefreshToken activeToken = storedToken(false, T.plusSeconds(60), FAMILY_ID);
         when(refreshRepository.findByTokenHash(TOKEN_HASH))
-                .thenReturn(Optional.of(activeToken), Optional.of(activeToken));
+                .thenReturn(Optional.of(activeToken)).thenReturn(Optional.of(activeToken));
         when(authUserService.loadUserById(USER_ID)).thenReturn(activeUser());
         when(refreshRepository.consumeIfActive(TOKEN_HASH, T)).thenReturn(0);
 
