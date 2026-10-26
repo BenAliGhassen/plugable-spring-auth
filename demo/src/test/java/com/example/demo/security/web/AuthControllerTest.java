@@ -146,7 +146,7 @@ class AuthControllerTest {
         MvcResult result = mockMvc.perform(loginRequest(json))
                 .andExpect(status().isBadRequest())
                 .andReturn();
-
+        //this line repeat the .andExpect(status().isBadRequest()) i didn't delete it ro help new springer understand what status is the badRequest
         assertThat(result.getResponse().getStatus()).isEqualTo(400);
         verify(loginAttemptsService, never()).isBlocked(any(String.class), any(String.class));
         verify(authenticationManager, never()).authenticate(any(Authentication.class));
