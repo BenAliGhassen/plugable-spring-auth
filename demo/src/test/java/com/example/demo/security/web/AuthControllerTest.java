@@ -32,7 +32,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultMatcher;
 
 import com.example.demo.security.AuthProperties;
 import com.example.demo.security.DefaultAuthUser;
@@ -97,8 +96,8 @@ class AuthControllerTest {
                 .andReturn();
 
         assertTwoSetCookies(result);
-        assertCookie(AuthCookies.ACCESS_TOKEN, ACCESS_TOKEN, AuthCookies.ACCESS_PATH, 900);
-        assertCookie(AuthCookies.REFRESH_TOKEN, REFRESH_TOKEN, AuthCookies.REFRESH_PATH, 604800);
+        assertCookie(result, AuthCookies.ACCESS_TOKEN, ACCESS_TOKEN, AuthCookies.ACCESS_PATH, 900);
+        assertCookie(result, AuthCookies.REFRESH_TOKEN, REFRESH_TOKEN, AuthCookies.REFRESH_PATH, 604800);
         verify(loginAttemptsService).recordSuccess(CLIENT_IP, USERNAME);
         verify(jwtService).generateToken(USERNAME, ROLES);
         verify(refreshService).generateRefreshToken(USER_ID);
@@ -207,8 +206,8 @@ class AuthControllerTest {
                 .andReturn();
 
         assertTwoSetCookies(result);
-        assertCookie(AuthCookies.ACCESS_TOKEN, ROTATED_ACCESS_TOKEN, AuthCookies.ACCESS_PATH, 900);
-        assertCookie(AuthCookies.REFRESH_TOKEN, ROTATED_REFRESH_TOKEN, AuthCookies.REFRESH_PATH, 604800);
+        assertCookie(result, AuthCookies.ACCESS_TOKEN, ROTATED_ACCESS_TOKEN, AuthCookies.ACCESS_PATH, 900);
+        assertCookie(result, AuthCookies.REFRESH_TOKEN, ROTATED_REFRESH_TOKEN, AuthCookies.REFRESH_PATH, 604800);
         verify(refreshService).rotateRefreshToken(REFRESH_TOKEN);
         verify(jwtService).generateToken(USERNAME, ROLES);
     }
@@ -233,8 +232,8 @@ class AuthControllerTest {
                 .andReturn();
 
         assertTwoSetCookies(result);
-        assertCookie(AuthCookies.ACCESS_TOKEN, "", AuthCookies.ACCESS_PATH, 0);
-        assertCookie(AuthCookies.REFRESH_TOKEN, "", AuthCookies.REFRESH_PATH, 0);
+        assertCookie(result, AuthCookies.ACCESS_TOKEN, "", AuthCookies.ACCESS_PATH, 0);
+        assertCookie(result, AuthCookies.REFRESH_TOKEN, "", AuthCookies.REFRESH_PATH, 0);
         verify(refreshService).revoke(REFRESH_TOKEN);
     }
 
@@ -249,8 +248,8 @@ class AuthControllerTest {
                 .andReturn();
 
         assertTwoSetCookies(result);
-        assertCookie(AuthCookies.ACCESS_TOKEN, "", AuthCookies.ACCESS_PATH, 0);
-        assertCookie(AuthCookies.REFRESH_TOKEN, "", AuthCookies.REFRESH_PATH, 0);
+        assertCookie(result, AuthCookies.ACCESS_TOKEN, "", AuthCookies.ACCESS_PATH, 0);
+        assertCookie(result, AuthCookies.REFRESH_TOKEN, "", AuthCookies.REFRESH_PATH, 0);
     }
 
     @Test
@@ -260,8 +259,8 @@ class AuthControllerTest {
                 .andReturn();
 
         assertTwoSetCookies(result);
-        assertCookie(AuthCookies.ACCESS_TOKEN, "", AuthCookies.ACCESS_PATH, 0);
-        assertCookie(AuthCookies.REFRESH_TOKEN, "", AuthCookies.REFRESH_PATH, 0);
+        assertCookie(result, AuthCookies.ACCESS_TOKEN, "", AuthCookies.ACCESS_PATH, 0);
+        assertCookie(result, AuthCookies.REFRESH_TOKEN, "", AuthCookies.REFRESH_PATH, 0);
         verify(refreshService, never()).revoke(any(String.class));
     }
 
@@ -273,8 +272,8 @@ class AuthControllerTest {
                 .andReturn();
 
         assertTwoSetCookies(result);
-        assertCookie(AuthCookies.ACCESS_TOKEN, "", AuthCookies.ACCESS_PATH, 0);
-        assertCookie(AuthCookies.REFRESH_TOKEN, "", AuthCookies.REFRESH_PATH, 0);
+        assertCookie(result, AuthCookies.ACCESS_TOKEN, "", AuthCookies.ACCESS_PATH, 0);
+        assertCookie(result, AuthCookies.REFRESH_TOKEN, "", AuthCookies.REFRESH_PATH, 0);
         verify(refreshService).revokeAll(REFRESH_TOKEN);
     }
 
@@ -289,8 +288,8 @@ class AuthControllerTest {
                 .andReturn();
 
         assertTwoSetCookies(result);
-        assertCookie(AuthCookies.ACCESS_TOKEN, "", AuthCookies.ACCESS_PATH, 0);
-        assertCookie(AuthCookies.REFRESH_TOKEN, "", AuthCookies.REFRESH_PATH, 0);
+        assertCookie(result, AuthCookies.ACCESS_TOKEN, "", AuthCookies.ACCESS_PATH, 0);
+        assertCookie(result, AuthCookies.REFRESH_TOKEN, "", AuthCookies.REFRESH_PATH, 0);
     }
 
     @Test
@@ -300,8 +299,8 @@ class AuthControllerTest {
                 .andReturn();
 
         assertTwoSetCookies(result);
-        assertCookie(AuthCookies.ACCESS_TOKEN, "", AuthCookies.ACCESS_PATH, 0);
-        assertCookie(AuthCookies.REFRESH_TOKEN, "", AuthCookies.REFRESH_PATH, 0);
+        assertCookie(result, AuthCookies.ACCESS_TOKEN, "", AuthCookies.ACCESS_PATH, 0);
+        assertCookie(result, AuthCookies.REFRESH_TOKEN, "", AuthCookies.REFRESH_PATH, 0);
         verify(refreshService, never()).revokeAll(any(String.class));
     }
 
@@ -324,15 +323,14 @@ class AuthControllerTest {
         assertThat(result.getResponse().getHeaders(HttpHeaders.SET_COOKIE)).hasSize(2);
     }
 
-    private static ResultMatcher assertCookie(String name, String value, String path, int maxAgeSeconds) throws Exception {
-                return result -> {
+    private static void assertCookie(MvcResult result, String name, String value, String path, int maxAgeSeconds) throws Exception {
                         cookie().value(name, value).match(result);
                         cookie().path(name, path).match(result);
                         cookie().maxAge(name, maxAgeSeconds).match(result);
                         cookie().httpOnly(name, true).match(result);
                         cookie().secure(name, true).match(result);
                         cookie().sameSite(name, "Strict").match(result);
-                };
+                
     }
 
     @TestConfiguration
