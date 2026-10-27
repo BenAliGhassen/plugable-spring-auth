@@ -43,3 +43,6 @@ build/
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+
+!src/test/resources/application.properties
