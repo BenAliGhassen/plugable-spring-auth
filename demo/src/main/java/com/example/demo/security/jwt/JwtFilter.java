@@ -43,6 +43,7 @@ public class JwtFilter extends OncePerRequestFilter {
                         SecurityContextHolder.getContext().setAuthentication(authentication);
                     }
                 } catch (JwtException exception) {
+                   //Defenive layer so a no complete authentification does not survive 
                     SecurityContextHolder.clearContext();
                 }
             }
