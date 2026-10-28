@@ -85,6 +85,7 @@ class AuthenticationFlowIntegrationTest {
         mockMvc.perform(loginRequest("192.0.2.1", PASSWORD))
                 .andExpect(status().isForbidden());
 
+        //No login so no refresh token created
         assertThat(refreshRepository.findAll()).isEmpty();
     }
 
@@ -94,6 +95,7 @@ class AuthenticationFlowIntegrationTest {
         MvcResult csrfResult = mockMvc.perform(get("/csrf"))
                 .andExpect(status().isNoContent())
                 .andReturn();
+        //Read cookie from req and return it's value        
         String csrfToken = cookieValue(csrfResult, CSRF_COOKIE);
 
         // Step 2: the frontend sends the cookie back AND copies its value into the header (double submit)
@@ -105,6 +107,7 @@ class AuthenticationFlowIntegrationTest {
 
         assertThat(cookieValue(loginResult, AuthCookies.ACCESS_TOKEN)).isNotBlank();
         assertThat(cookieValue(loginResult, AuthCookies.REFRESH_TOKEN)).isNotBlank();
+        //Verify that the refresh token was created with the logged in user id
         assertThat(refreshRepository.findAll())
                 .hasSize(1)
                 .allSatisfy(token -> assertThat(token.getUserId()).isEqualTo(user.getId().toString()));
