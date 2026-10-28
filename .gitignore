@@ -45,4 +45,4 @@ Thumbs.db
 Desktop.ini
 
 
-!src/test/resources/application.properties
+!**/src/test/resources/application.properties

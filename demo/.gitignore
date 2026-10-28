@@ -50,3 +50,5 @@ hs_err_pid*.log
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+!src/test/resources/application.properties
