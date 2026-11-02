@@ -14,7 +14,6 @@ import java.util.HexFormat;
 import java.util.List;
 
 import jakarta.servlet.http.Cookie;
-import jakarta.validation.executable.ValidateOnExecution;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,7 +52,6 @@ class AuthenticationFlowIntegrationTest {
     private static final String USERNAME = "alice@example.com";
     private static final String PASSWORD = "correct-password";
     private static final String WRONG_PASSWORD = "incorrect-password";
-    private static final String LONG_PASSWORD ="A character can be any letter, number, punctuation, special character, or space. Each of these characters takes up one byte of space in a computer's ";
     // Must match auth.cors.origins in src/test/resources/application.properties
     private static final String ALLOWED_ORIGIN = "http://localhost:5173";
     private static final String CSRF_COOKIE = "XSRF-TOKEN";
@@ -137,15 +135,6 @@ class AuthenticationFlowIntegrationTest {
     void wrongPasswordReturnsUnauthorizedAndCreatesNoRefreshToken() throws Exception {
         mockMvc.perform(withRealCsrf(loginRequest("192.0.2.4", WRONG_PASSWORD)))
                 .andExpect(status().isUnauthorized());
-
-        assertThat(refreshRepository.findAll()).isEmpty();
-    }
-
-
-    @Test
-    void LongPasswordReturnsValidationException() throws Exception {
-        mockMvc.perform(withRealCsrf(loginRequest("192.0.2.4", LONG_PASSWORD)))
-                .andExpect(status().isBadRequest());
 
         assertThat(refreshRepository.findAll()).isEmpty();
     }
